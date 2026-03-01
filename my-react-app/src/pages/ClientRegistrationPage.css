@@ -1,0 +1,291 @@
+/* ClientRegistrationPage.css */
+
+.registration-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7ff 0%, #eef1ff 100%);
+    display: flex;
+    align-items: center;
+    padding: 40px 0;
+}
+
+.registration-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    width: 100%;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.registration-form-container {
+    flex: 1;
+    padding: 60px 50px;
+    display: flex;
+    align-items: center;
+}
+
+.registration-form {
+    width: 100%;
+    max-width: 500px;
+}
+
+.form-title {
+    font-size: 2.2rem;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.form-subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.form-group input.error {
+    border-color: #e74c3c;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+.checkbox-group input {
+    width: auto;
+    margin-right: 10px;
+    margin-top: 2px;
+}
+
+.checkbox-group label {
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.checkbox-group label a {
+    color: #4361ee;
+    text-decoration: none;
+}
+
+.checkbox-group label a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.submit-error {
+    background-color: #fdecea;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.register-btn {
+    width: 100%;
+    background-color: #4361ee;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 20px;
+}
+
+.register-btn:hover:not(:disabled) {
+    background-color: #3a56d4;
+}
+
+.register-btn:disabled {
+    background-color: #a0b3e6;
+    cursor: not-allowed;
+}
+
+.login-link {
+    text-align: center;
+    color: #666;
+}
+
+.login-link a {
+    color: #4361ee;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+.success-message {
+    text-align: center;
+    padding: 30px;
+    background-color: #e7f5ff;
+    border-radius: 10px;
+}
+
+.success-message h3 {
+    color: #1864ab;
+    margin-bottom: 15px;
+}
+
+.success-message p {
+    color: #495057;
+    margin-bottom: 20px;
+}
+
+.login-link-btn {
+    display: inline-block;
+    background-color: #4361ee;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.login-link-btn:hover {
+    background-color: #3a56d4;
+}
+
+/* Benefits Section */
+.benefits-section {
+    flex: 1;
+    background-color: #1a1a2e;
+    color: white;
+    padding: 60px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.benefits-section h3 {
+    font-size: 1.8rem;
+    margin-bottom: 40px;
+    color: white;
+}
+
+.benefits-list {
+    list-style: none;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.benefit-icon {
+    background-color: rgba(255, 255, 255, 0.1);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.benefit-icon svg {
+    color: #4361ee;
+}
+
+.benefit-content h4 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.benefit-content p {
+    color: #adb5bd;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .registration-container {
+        flex-direction: column;
+    }
+
+    .benefits-section {
+        padding: 40px 30px;
+    }
+
+    .benefits-section h3 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .registration-form-container {
+        padding: 40px 30px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .registration-form-container {
+        padding: 30px 20px;
+    }
+
+    .benefits-section {
+        padding: 30px 20px;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+    }
+}

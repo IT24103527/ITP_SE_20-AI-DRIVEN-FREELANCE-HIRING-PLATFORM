@@ -1,0 +1,67 @@
+/* ─────────────────────────────────────────────
+   TOP PROGRESS BAR
+───────────────────────────────────────────── */
+.tf-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 0%;
+    z-index: 9999;
+    pointer-events: none;
+
+    /* Luminous gradient — visible accent bar */
+    background: linear-gradient(90deg, #2563eb, #06b6d4);
+
+    /* Soft glow under the bar */
+    box-shadow:
+        0 0 8px rgba(56, 189, 248, 0.8),
+        0 0 20px rgba(37, 99, 235, 0.5);
+
+    border-radius: 0 2px 2px 0;
+    transition: none;
+}
+
+/* Idle — invisible */
+.tf-bar--idle {
+    width: 0%;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+/* Loading — sweep to ~85% quickly */
+.tf-bar--loading {
+    width: 85%;
+    opacity: 1;
+    transition: width 0.28s cubic-bezier(0.1, 0.6, 0.4, 1);
+}
+
+/* Done — snap to 100% then fade out */
+.tf-bar--done {
+    width: 100%;
+    opacity: 1;
+    transition: width 0.12s ease-out;
+}
+
+/* ─────────────────────────────────────────────
+   PAGE CONTENT FADE
+───────────────────────────────────────────── */
+.tf-page {
+    width: 100%;
+    min-height: 100vh;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    will-change: opacity;
+}
+
+.tf-page--visible {
+    opacity: 1;
+    transition: opacity 0.22s ease-out;
+}
+
+.tf-page--hidden {
+    opacity: 0;
+    transition: opacity 0.15s ease-in;
+    pointer-events: none;
+}

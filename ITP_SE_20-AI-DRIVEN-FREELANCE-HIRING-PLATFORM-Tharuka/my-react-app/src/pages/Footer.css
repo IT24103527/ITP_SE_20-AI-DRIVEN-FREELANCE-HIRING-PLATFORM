@@ -1,0 +1,412 @@
+/* Enhanced Newsletter Section */
+.newsletter-enhanced {
+    position: relative;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(58, 86, 212, 0.05));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    border-radius: 15px;
+    padding: 30px;
+    overflow: hidden;
+}
+
+.newsletter-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.newsletter-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.newsletter-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.title-icon {
+    font-size: 1.8rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.newsletter-subtitle {
+    color: #adb5bd;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+/* Enhanced Form Styles */
+.newsletter-form {
+    margin-bottom: 25px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.newsletter-input {
+    width: 100%;
+    padding: 15px 50px 15px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.newsletter-input:focus {
+    outline: none;
+    border-color: #4361ee;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+}
+
+.newsletter-input::placeholder {
+    color: #adb5bd;
+}
+
+.input-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    pointer-events: none;
+    transition: color 0.3s;
+}
+
+.newsletter-input:focus + .input-icon {
+    color: #4361ee;
+}
+
+/* Creative Button Styles */
+.creative-btn {
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Option 1: Gradient Animated Button */
+.gradient-animated {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    background-size: 200% 200%;
+    color: white;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.gradient-animated:hover {
+    background-position: 100% 0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+}
+
+.gradient-animated.submitting {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    cursor: not-allowed;
+}
+
+.gradient-animated.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    animation: success-pulse 0.6s ease;
+}
+
+@keyframes success-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.success-icon {
+    animation: checkmark 0.5s ease;
+    margin-right: 10px;
+}
+
+@keyframes checkmark {
+    0% { transform: scale(0) rotate(-45deg); }
+    50% { transform: scale(1.2) rotate(-45deg); }
+    100% { transform: scale(1) rotate(-45deg); }
+}
+
+.btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+    );
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    20%, 100% { left: 100%; }
+}
+
+/* Newsletter Benefits */
+.newsletter-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #adb5bd;
+    opacity: 0.8;
+    transition: all 0.3s;
+}
+
+.benefit-item:hover {
+    opacity: 1;
+    transform: translateX(5px);
+}
+
+.benefit-icon {
+    font-size: 1rem;
+    transition: transform 0.3s;
+}
+
+.benefit-item:hover .benefit-icon {
+    transform: scale(1.2) rotate(5deg);
+}
+
+/* Alternative Creative Button Options */
+
+/* Option 2: Neon Glow Button */
+.neon-glow {
+    background: transparent;
+    border: 2px solid #4361ee;
+    color: #4361ee;
+    position: relative;
+    overflow: hidden;
+}
+
+.neon-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0f2e 0%, #2e0854 100%);
+    transition: left 0.5s;
+}
+
+.neon-glow:hover::before {
+    left: 100%;
+}
+
+.neon-glow:hover {
+    color: white;
+    text-shadow: 0 0 10px #4361ee, 0 0 20px #4361ee, 0 0 30px #4361ee;
+    box-shadow: 0 0 10px #4361ee, 0 0 20px #4361ee, 0 0 30px #4361ee, inset 0 0 10px #4361ee;
+}
+
+/* Option 3: Liquid Fill Button */
+.liquid-fill {
+    background: transparent;
+    border: 2px solid #4361ee;
+    color: #4361ee;
+    position: relative;
+    overflow: hidden;
+}
+
+.liquid-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: #4361ee;
+    transition: left 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.liquid-fill:hover::before {
+    left: 100%;
+}
+
+.liquid-fill:hover {
+    color: white;
+    border-color: #4361ee;
+}
+
+/* Option 4: Particle Explosion Button */
+.particle-explosion {
+    background: #4361ee;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.particle-explosion::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: all 0.6s ease;
+}
+
+.particle-explosion:hover::before {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+}
+
+.particle-explosion:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(67, 97, 238, 0.4);
+}
+
+/* Option 5: Magnetic Border Button */
+.magnetic-border {
+    background: transparent;
+    border: 2px solid #4361ee;
+    color: #4361ee;
+    position: relative;
+}
+
+.magnetic-border::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #0a0f2e 0%, #2e0854 100%);
+    border-radius: 12px;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s;
+}
+
+.magnetic-border:hover::before {
+    opacity: 1;
+}
+
+.magnetic-border:hover {
+    color: white;
+    background: #4361ee;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .newsletter-enhanced {
+        padding: 20px;
+    }
+
+    .newsletter-title {
+        font-size: 1.3rem;
+    }
+
+    .newsletter-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .creative-btn {
+        height: 45px;
+        font-size: 0.9rem;
+    }
+
+    .newsletter-benefits {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .benefit-item {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .newsletter-enhanced {
+        padding: 15px;
+    }
+
+    .newsletter-title {
+        font-size: 1.2rem;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .creative-btn {
+        height: 40px;
+        font-size: 0.85rem;
+    }
+
+    .newsletter-benefits {
+        display: none;
+    }
+}

@@ -1,0 +1,166 @@
+/* HomePageButton.css */
+
+.homepage-btn-container {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.homepage-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(37, 99, 235, 0.25);
+    color: white;
+    text-decoration: none;
+    padding: 12px 16px;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    min-width: 80px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.homepage-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+    );
+    transition: left 0.6s ease;
+}
+
+.homepage-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+    background: rgba(37, 99, 235, 0.4);
+}
+
+.homepage-btn:hover::before {
+    left: 100%;
+}
+
+.btn-icon {
+    transition: transform 0.3s ease;
+}
+
+.homepage-btn:hover .btn-icon {
+    transform: translateX(-2px);
+}
+
+.btn-text {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: transform 0.3s ease;
+}
+
+.homepage-btn:hover .btn-text {
+    transform: translateX(2px);
+}
+
+/* Tooltip */
+.homepage-btn::after {
+    content: 'Back to Home';
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1001;
+}
+
+.homepage-btn:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-5px);
+}
+
+/* Pulse Animation */
+.homepage-btn {
+    animation: pulse-home 2s infinite;
+}
+
+@keyframes pulse-home {
+    0% {
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 25px rgba(67, 97, 238, 0.5);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .homepage-btn-container {
+        right: 15px;
+    }
+
+    .homepage-btn {
+        padding: 10px 14px;
+        min-width: 70px;
+        font-size: 0.8rem;
+    }
+
+    .homepage-btn::after {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+        bottom: -30px;
+    }
+}
+
+@media (max-width: 576px) {
+    .homepage-btn-container {
+        right: 10px;
+    }
+
+    .homepage-btn {
+        padding: 8px 12px;
+        min-width: 60px;
+        font-size: 0.75rem;
+    }
+
+    .btn-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .homepage-btn::after {
+        font-size: 0.65rem;
+        padding: 4px 8px;
+        bottom: -28px;
+    }
+}
+
+/* Hide on HomePage */
+.homepage .homepage-btn-container {
+    display: none;
+}

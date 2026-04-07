@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Toast, { useToast } from '../components/Toast';
 import PasswordStrength from '../components/PasswordStrength';
 import './AdminRegistrationPage.css';
 
+const SPECIAL_PASSWORD_CHARS = '!@#$%^&*()_+-=[]{};\':"|,.<>?/\\';
+
 const AdminRegistrationPage = () => {
-    const navigate = useNavigate();
-    const { toasts, success, error: toastError, warning } = useToast();
+    const { toasts, warning } = useToast();
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -57,7 +58,7 @@ const AdminRegistrationPage = () => {
             newErrors.password = 'Password must contain at least one lowercase letter';
         } else if (!/[0-9]/.test(formData.password)) {
             newErrors.password = 'Password must contain at least one number';
-        } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
+        } else if (![...SPECIAL_PASSWORD_CHARS].some((ch) => formData.password.includes(ch))) {
             newErrors.password = 'Password must contain at least one special character (!@#$%^&*...)';
         }
 

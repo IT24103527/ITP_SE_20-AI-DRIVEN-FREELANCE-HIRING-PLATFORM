@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 // This controller mirrors /api/auth for legacy frontend compatibility
 @RestController
 @RequestMapping("/api/v1/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class RegistrationController {
 

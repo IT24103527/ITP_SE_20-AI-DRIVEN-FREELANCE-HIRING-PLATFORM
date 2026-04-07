@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './FreelancerDashboard.css';
 
@@ -19,19 +19,18 @@ const FreelancerDashboard = () => {
 
     const token = localStorage.getItem('token');
 
-    useEffect(() => {
-        if (!token) { navigate('/freelancer-login'); return; }
-        fetchProfile();
+    const showMessage = useCallback((text, type) => {
+        setMessage({ text, type });
+        setTimeout(() => setMessage({ text: '', type: '' }), 4000);
     }, []);
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const res = await fetch(`${API}/api/user/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.status === 401) { navigate('/freelancer-login'); return; }
             const data = await res.json();
-            // Trust the role stored at login time — profile endpoint may not include it
             const storedRole = localStorage.getItem('userRole');
             const userRole = data.role || storedRole;
             if (userRole && userRole !== 'FREELANCER') { navigate('/freelancer-login'); return; }
@@ -51,12 +50,12 @@ const FreelancerDashboard = () => {
         } catch (e) {
             showMessage('Failed to load profile', 'error');
         }
-    };
+    }, [token, navigate, showMessage]);
 
-    const showMessage = (text, type) => {
-        setMessage({ text, type });
-        setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-    };
+    useEffect(() => {
+        if (!token) { navigate('/freelancer-login'); return; }
+        fetchProfile();
+    }, [token, navigate, fetchProfile]);
 
     const addSkill = () => {
         const s = skillInput.trim();

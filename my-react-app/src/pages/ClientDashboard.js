@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './ClientDashboard.css';
 
@@ -17,12 +17,12 @@ const ClientDashboard = () => {
 
     const token = localStorage.getItem('token');
 
-    useEffect(() => {
-        if (!token) { navigate('/login'); return; }
-        fetchProfile();
+    const showMessage = useCallback((text, type) => {
+        setMessage({ text, type });
+        setTimeout(() => setMessage({ text: '', type: '' }), 4000);
     }, []);
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const res = await fetch(`${API}/api/user/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -43,12 +43,12 @@ const ClientDashboard = () => {
         } catch (e) {
             showMessage('Failed to load profile', 'error');
         }
-    };
+    }, [token, navigate, showMessage]);
 
-    const showMessage = (text, type) => {
-        setMessage({ text, type });
-        setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-    };
+    useEffect(() => {
+        if (!token) { navigate('/login'); return; }
+        fetchProfile();
+    }, [token, navigate, fetchProfile]);
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - Protected endpoints return 401 with a malformed/invalid JWT
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class SecurityConfigTest {
 
@@ -60,7 +62,7 @@ class SecurityConfigTest {
     void registerAdminEndpoint_isPublic() throws Exception {
         mockMvc.perform(post("/api/auth/register/admin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"fullName\":\"T\",\"email\":\"t@t.com\",\"password\":\"Pass1234\",\"adminCode\":\"wrong\",\"department\":\"IT\"}"))
+                .content("{\"fullName\":\"T\",\"email\":\"t@t.com\",\"password\":\"Password1!\",\"adminCode\":\"wrong\",\"department\":\"IT\"}"))
                 .andExpect(status().isOk());
     }
 

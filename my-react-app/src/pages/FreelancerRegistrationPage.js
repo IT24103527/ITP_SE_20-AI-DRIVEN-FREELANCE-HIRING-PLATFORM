@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Toast, { useToast } from '../components/Toast';
 import PasswordStrength from '../components/PasswordStrength';
@@ -7,7 +7,6 @@ import HomePageButton from '../components/HomePageButton';
 import './FreelancerRegistrationPage.css';
 
 const FreelancerRegistrationPage = () => {
-    const navigate = useNavigate();
     const { toasts, success, error: toastError, warning } = useToast();
     const [formData, setFormData] = useState({
         fullName: '',

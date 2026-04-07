@@ -33,7 +33,7 @@ const PressPage = () => (
                                 <h3>{item.headline}</h3>
                                 <span className="press-date">{item.date}</span>
                             </div>
-                            <a href="#" className="press-link">Read →</a>
+                            <a href="mailto:press@talentflowai.lk?subject=Press%20inquiry%3A%20coverage" className="press-link">Read →</a>
                         </div>
                     ))}
                 </div>
@@ -44,9 +44,9 @@ const PressPage = () => (
             <div className="static-container">
                 <h2 className="static-section-title">Brand Assets</h2>
                 <div className="about-grid">
-                    <div className="about-card"><div className="about-icon">🎨</div><h3>Logo Pack</h3><p>SVG, PNG in light and dark variants. Download our official logo kit.</p><a href="#" className="static-dl-btn">Download</a></div>
-                    <div className="about-card"><div className="about-icon">🖼️</div><h3>Screenshots</h3><p>High-resolution product screenshots for editorial use.</p><a href="#" className="static-dl-btn">Download</a></div>
-                    <div className="about-card"><div className="about-icon">📋</div><h3>Fact Sheet</h3><p>Key stats, founding story, and executive bios in one document.</p><a href="#" className="static-dl-btn">Download</a></div>
+                    <div className="about-card"><div className="about-icon">🎨</div><h3>Logo Pack</h3><p>SVG, PNG in light and dark variants. Download our official logo kit.</p><a href="mailto:press@talentflowai.lk?subject=Request%3A%20logo%20pack" className="static-dl-btn">Download</a></div>
+                    <div className="about-card"><div className="about-icon">🖼️</div><h3>Screenshots</h3><p>High-resolution product screenshots for editorial use.</p><a href="mailto:press@talentflowai.lk?subject=Request%3A%20screenshots" className="static-dl-btn">Download</a></div>
+                    <div className="about-card"><div className="about-icon">📋</div><h3>Fact Sheet</h3><p>Key stats, founding story, and executive bios in one document.</p><a href="mailto:press@talentflowai.lk?subject=Request%3A%20fact%20sheet" className="static-dl-btn">Download</a></div>
                 </div>
             </div>
         </section>

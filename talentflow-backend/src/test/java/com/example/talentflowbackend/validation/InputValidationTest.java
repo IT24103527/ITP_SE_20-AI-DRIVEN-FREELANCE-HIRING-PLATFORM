@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -20,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - Enforces per-role registration and login rules
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class InputValidationTest {
 
@@ -29,12 +33,12 @@ class InputValidationTest {
     // ── Login validation ──────────────────────────────────────────
 
     @Test
-    @DisplayName("Login with empty body returns 200 with a message (not 500)")
+    @DisplayName("Login with empty body returns 400 with validation message (not 500)")
     void login_emptyBody_returnsMessage() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
 
@@ -130,7 +134,7 @@ class InputValidationTest {
     @Test
     @DisplayName("Register client then freelancer with same email adds freelancer role")
     void registerClientThenFreelancer_sameEmail_addsFreelancerRole() throws Exception {
-        String email = "multirole_test@talentflow.test";
+        String email = "multirole_" + UUID.randomUUID() + "@talentflow.test";
 
         mockMvc.perform(post("/api/auth/register/client")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -152,7 +156,7 @@ class InputValidationTest {
     void registerAdmin_wrongCode_returnsInvalidCodeMessage() throws Exception {
         mockMvc.perform(post("/api/auth/register/admin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"fullName\":\"Admin\",\"email\":\"admin@test.com\",\"password\":\"Password1\",\"adminCode\":\"WRONG\",\"department\":\"IT\"}"))
+                .content("{\"fullName\":\"Admin\",\"email\":\"admin@test.com\",\"password\":\"Password1!\",\"adminCode\":\"WRONG\",\"department\":\"IT\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Invalid admin registration code."));
     }

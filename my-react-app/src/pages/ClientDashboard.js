@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './ClientDashboard.css';
 import RecommendationPage from "./RecommendationPage.js";
@@ -9,7 +9,7 @@ const API = 'http://localhost:8080';
 const ClientDashboard = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState('profile');
     const [editMode, setEditMode] = useState(false);
     const [profileData, setProfileData] = useState({});
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', otp: '' });
@@ -17,32 +17,14 @@ const ClientDashboard = () => {
     const [message, setMessage] = useState({ text: '', type: '' });
     const [loading, setLoading] = useState(false);
 
-    // My Jobs
-    const [myJobs, setMyJobs] = useState([]);
-    const [jobsLoading, setJobsLoading] = useState(false);
-
-    // Post/Edit a Job
-    const [editJobId, setEditJobId] = useState(null);
-    const [logoPreview, setLogoPreview] = useState(null);
-    const [jobForm, setJobForm] = useState({ title: '', description: '', budget: '', deadline: '', requiredSkills: '', gender: '', careerLevel: '', industry: '', experience: '', qualification: '', location: '', jobType: 'Full-Time', companyLogo: '' });
-    const [postMsg, setPostMsg] = useState('');
-    const [postLoading, setPostLoading] = useState(false);
-
-    // Mobile sidebar
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-
     const token = localStorage.getItem('token');
 
-    useEffect(() => {
-        if (!token) { navigate('/login'); return; }
-        fetchProfile();
+    const showMessage = useCallback((text, type) => {
+        setMessage({ text, type });
+        setTimeout(() => setMessage({ text: '', type: '' }), 4000);
     }, []);
 
-    useEffect(() => {
-        if (activeTab === 'my-jobs') fetchMyJobs();
-    }, [activeTab]);
-
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const res = await fetch(`${API}/api/user/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -63,181 +45,12 @@ const ClientDashboard = () => {
         } catch (e) {
             showMessage('Failed to load profile', 'error');
         }
-    };
+    }, [token, navigate, showMessage]);
 
-    const fetchMyJobs = async () => {
-        setJobsLoading(true);
-        try {
-            const res = await fetch(`${API}/api/jobs/my`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setMyJobs(Array.isArray(data) ? data : (data.jobs || data.content || []));
-            } else {
-                setMyJobs([]);
-            }
-        } catch (e) {
-            setMyJobs([]);
-        } finally {
-            setJobsLoading(false);
-        }
-    };
-
-    const getTodayDate = () => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-    };
-
-    const getTwoMonthsLaterDate = () => {
-        const date = new Date();
-        date.setMonth(date.getMonth() + 2);
-        const yyyy = date.getFullYear();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-    };
-
-    const handleLogoUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 2 * 1024 * 1024) {
-            showMessage('Image must be under 2MB', 'error');
-            return;
-        }
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setJobForm({ ...jobForm, companyLogo: reader.result });
-            setLogoPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleDeleteJob = async (jobId) => {
-        if (!window.confirm('Are you sure you want to delete this job?')) return;
-        try {
-            const res = await fetch(`${API}/api/jobs/${jobId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                showMessage('Job deleted successfully!', 'success');
-                fetchMyJobs();
-            } else showMessage('Failed to delete job', 'error');
-        } catch (e) { showMessage('Delete failed', 'error'); }
-    };
-
-    const startEditJob = (job) => {
-        setEditJobId(job.id || job._id);
-        const deadlineFormatted = job.deadline ? new Date(job.deadline).toISOString().split('T')[0] : '';
-        setJobForm({
-            title: job.title || '',
-            description: job.description || '',
-            budget: job.budget || '',
-            deadline: deadlineFormatted,
-            requiredSkills: job.requiredSkills || '',
-            gender: job.gender || 'Any',
-            careerLevel: job.careerLevel || '',
-            industry: job.industry || '',
-            experience: job.experience || '',
-            qualification: job.qualification || '',
-            location: job.location || '',
-            jobType: job.jobType || 'Full-Time',
-            companyLogo: job.companyLogo || ''
-        });
-        setLogoPreview(job.companyLogo || null);
-        setActiveTab('post-job');
-    };
-
-    const validateForm = () => {
-        const errors = [];
-        if (!jobForm.title.trim()) errors.push('Job title is required');
-        if (!jobForm.description.trim()) {
-            errors.push('Description is required');
-        } else if (jobForm.description.trim().length < 20 || jobForm.description.trim().length > 2000) {
-            errors.push('Description must be between 20 and 2000 characters');
-        }
-        
-        // Budget validation: 0-100,000,000
-        const budgetNum = Number(jobForm.budget);
-        if (isNaN(budgetNum) || budgetNum < 0 || budgetNum > 100000000) {
-            errors.push('Budget must be between 0 and 100,000,000');
-        }
-
-        // Deadline validation: today to two months future
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const deadline = new Date(jobForm.deadline);
-        const twoMonthsLater = new Date();
-        twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
-        twoMonthsLater.setHours(23, 59, 59, 999);
-
-        if (!jobForm.deadline) {
-            errors.push('Deadline is required');
-        } else if (deadline < today) {
-            errors.push('Deadline cannot be in the past');
-        } else if (deadline > twoMonthsLater) {
-            errors.push('Deadline must be within the next two months');
-        }
-
-        if (!jobForm.location.trim()) errors.push('Location is required');
-        if (!jobForm.careerLevel.trim()) errors.push('Career level is required');
-        if (!jobForm.industry.trim()) errors.push('Industry is required');
-        if (!jobForm.experience.trim()) errors.push('Experience is required');
-        if (!jobForm.qualification.trim()) errors.push('Qualification is required');
-        if (!jobForm.requiredSkills.trim()) errors.push('Required skills are required');
-
-        return errors;
-    };
-
-    const handlePostJob = async (e) => {
-        e.preventDefault();
-        
-        const errors = validateForm();
-        if (errors.length > 0) {
-            setPostMsg(`❌ ${errors[0]}`);
-            showMessage(errors[0], 'error');
-            return;
-        }
-
-        setPostLoading(true);
-        setPostMsg('');
-        
-        try {
-            const endpoint = editJobId ? `${API}/api/jobs/${editJobId}` : `${API}/api/jobs`;
-            const method = editJobId ? 'PUT' : 'POST';
-
-            const res = await fetch(endpoint, {
-                method: method,
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(jobForm)
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setPostMsg(`✅ Job ${editJobId ? 'updated' : 'posted'} successfully!`);
-                setJobForm({ title: '', description: '', budget: '', deadline: '', requiredSkills: '', gender: '', careerLevel: '', industry: '', experience: '', qualification: '', location: '', jobType: 'Full-Time', companyLogo: '' });
-                setEditJobId(null);
-                setLogoPreview(null);
-                showMessage(`Job ${editJobId ? 'updated' : 'posted'} successfully!`, 'success');
-                fetchMyJobs();
-                setActiveTab('my-jobs');
-            } else {
-                setPostMsg(data.message || `Failed to ${editJobId ? 'update' : 'post'} job.`);
-            }
-        } catch (e) {
-            setPostMsg(`Failed to ${editJobId ? 'update' : 'post'} job. Please ensure the backend is running.`);
-        } finally {
-            setPostLoading(false);
-        }
-    };
-
-    const showMessage = (text, type) => {
-        setMessage({ text, type });
-        setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-    };
+    useEffect(() => {
+        if (!token) { navigate('/login'); return; }
+        fetchProfile();
+    }, [token, navigate, fetchProfile]);
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
@@ -322,50 +135,35 @@ const ClientDashboard = () => {
         { key: 'security',  icon: '🔒', label: 'Security' },
         { key: 'danger',    icon: '⚠️', label: 'Account' },
     ];
+    if (!user) return <div className="dashboard-loading">Loading...</div>;
 
     return (
         <div className="dashboard-page">
-            {/* Mobile toggle */}
-            <button className="sidebar-toggle" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle sidebar">
-                {sidebarOpen ? '✕' : '☰'}
-            </button>
-
-            <aside className={`dashboard-sidebar${sidebarOpen ? ' open' : ''}`}>
+            <aside className="dashboard-sidebar">
                 <div className="sidebar-brand">
                     <h2>TalentFlow<span className="ai-accent">AI</span></h2>
                     <span className="role-badge client-badge">Client</span>
                 </div>
                 <div className="sidebar-user">
-                    <div className="user-avatar client-avatar">{user.fullName?.charAt(0).toUpperCase()}</div>
+                    <div className="user-avatar">{user.fullName?.charAt(0).toUpperCase()}</div>
                     <div className="user-info">
                         <p className="user-name">{user.fullName}</p>
-                        <p className="user-email">{user.companyName || user.email}</p>
+                        <p className="user-email">{user.email}</p>
                     </div>
                 </div>
                 <nav className="sidebar-nav">
-                    {navItems.map(item => (
-                        <button
-                            key={item.key}
-                            className={activeTab === item.key ? 'nav-item active' : 'nav-item'}
-                            onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
-                        >
-                            <span className="nav-icon">{item.icon}</span>
-                            <span className="nav-label">{item.label}</span>
-                        </button>
-                    ))}
+                    <button className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('profile')}>👤 My Profile</button>
+                    <button className={activeTab === 'security' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('security')}>🔒 Security</button>
+                    <button className={activeTab === 'danger' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('danger')}>⚠️ Account</button>
                 </nav>
-                <div className="sidebar-footer">
-                    <Link to="/" className="home-btn">🏠 Home</Link>
-                    <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
-                </div>
+                <Link to="/" className="home-btn">🏠 Home</Link>
+                <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
             </aside>
-
-            {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
             <main className="dashboard-main">
                 <div className="dashboard-header">
                     <h1>Welcome back, {user.fullName?.split(' ')[0]}!</h1>
-                    <p>{user.companyName ? `${user.companyName} · Client Dashboard` : 'Client Dashboard'}</p>
+                    <p>Manage your client profile and account settings</p>
                 </div>
 
                 {message.text && (
@@ -729,7 +527,7 @@ const ClientDashboard = () => {
                                         <option value="200+">200+ employees</option>
                                     </select>
                                 </div>
-                                <button type="submit" className="save-btn client-save-btn" disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</button>
+                                <button type="submit" className="save-btn" disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</button>
                             </form>
                         ) : (
                             <div className="profile-view">
@@ -745,7 +543,6 @@ const ClientDashboard = () => {
                     </div>
                 )}
 
-                {/* ── SECURITY ── */}
                 {activeTab === 'security' && (
                     <div className="dashboard-card">
                         <div className="card-header"><h2>Change Password</h2></div>
@@ -760,8 +557,8 @@ const ClientDashboard = () => {
                             </div>
                             <div className="otp-section">
                                 <button type="button" className="otp-btn" onClick={sendPasswordOtp}>
-                                    {otpSent ? '✅ Code Sent - Resend' : '📱 Send Verification Code to Phone'}
-                                </button>
+                                        {otpSent ? '✅ Code Sent - Resend' : '📱 Send Verification Code to Phone'}
+                                    </button>
                             </div>
                             {otpSent && (
                                 <div className="form-group">
@@ -769,12 +566,11 @@ const ClientDashboard = () => {
                                     <input type="text" placeholder="6-digit OTP" value={passwordData.otp} onChange={e => setPasswordData({...passwordData, otp: e.target.value})} required maxLength={6} />
                                 </div>
                             )}
-                            <button type="submit" className="save-btn client-save-btn" disabled={loading || !otpSent}>{loading ? 'Changing...' : 'Change Password'}</button>
+                            <button type="submit" className="save-btn" disabled={loading || !otpSent}>{loading ? 'Changing...' : 'Change Password'}</button>
                         </form>
                     </div>
                 )}
 
-                {/* ── DANGER ── */}
                 {activeTab === 'danger' && (
                     <div className="dashboard-card danger-card">
                         <div className="card-header"><h2>Danger Zone</h2></div>

@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -62,6 +63,7 @@ public class JwtService {
                 ? user.getRoles().stream().map(r -> r.name()).toList() : List.of());
         extraClaims.put("userId", user.getId());
         extraClaims.put("fullName", user.getFullName());
+        extraClaims.put("jti", UUID.randomUUID().toString());
 
         return Jwts.builder()
                 .setClaims(extraClaims)
@@ -79,6 +81,7 @@ public class JwtService {
                 ? user.getRoles().stream().map(r -> r.name()).toList() : List.of());
         extraClaims.put("userId", user.getId());
         extraClaims.put("fullName", user.getFullName());
+        extraClaims.put("jti", UUID.randomUUID().toString());
 
         return Jwts.builder()
                 .setClaims(extraClaims)

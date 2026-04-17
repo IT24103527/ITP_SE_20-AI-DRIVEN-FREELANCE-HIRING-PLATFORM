@@ -21,6 +21,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final OtpService otpService;
     private final EmailService emailService;
+    private final TokenRefreshService tokenRefreshService;
 
     @Value("${admin.registration.code}")
     private String adminRegistrationCode;
@@ -152,6 +153,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         try {
+            Role requestedRole = parseRole(request.getRole());
+            if (requestedRole == null)
+                return AuthResponse.builder().message("Role is required to log in.").build();
+
             User user = userRepository.findByEmail(request.getEmail()).orElse(null);
             if (user == null || Boolean.FALSE.equals(user.getIsActive()))
                 return AuthResponse.builder().message("Invalid email or password.").build();
@@ -164,10 +169,6 @@ public class AuthService {
                         .lockSecondsRemaining(user.lockSecondsRemaining())
                         .build();
             }
-
-            Role requestedRole = parseRole(request.getRole());
-            if (requestedRole == null)
-                return AuthResponse.builder().message("Role is required to log in.").build();
 
             if (!user.hasRole(requestedRole))
                 return AuthResponse.builder()
@@ -280,9 +281,12 @@ public class AuthService {
                 case ADMIN      -> emailService.sendAdminLoginEmail(user.getEmail(), user.getFullName());
             }
 
+            TokenPair tokenPair = tokenRefreshService.issueTokenPair(user, activeRole);
+
             return AuthResponse.builder()
                     .token(jwtToken).message("Login successful")
                     .role(activeRole.name())
+                    .refreshToken(tokenPair.refreshToken())
                     .roles(user.getRoles() != null
                             ? user.getRoles().stream().map(Role::name).toList()
                             : List.of())

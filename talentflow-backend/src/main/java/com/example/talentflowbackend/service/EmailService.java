@@ -20,9 +20,8 @@ public class EmailService {
     @Value("${app.mail.from}")
     private String fromAddress;
 
-    // ── shared send helper ────────────────────────────────────────
-    @Async
-    public void send(String to, String subject, String htmlBody) {
+    // ── shared send helper (package-private — used by tests and @Async public methods) ──
+    void send(String to, String subject, String htmlBody) {
         try {
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
@@ -39,6 +38,7 @@ public class EmailService {
 
     // ── REGISTRATION emails ───────────────────────────────────────
 
+    @Async
     public void sendClientRegistrationEmail(String to, String fullName) {
         send(to, "🎉 Welcome to TalentFlowAI — Your Client Account is Ready!",
                 registrationTemplate(fullName, "Client",
@@ -47,6 +47,7 @@ public class EmailService {
                         new String[]{"Post unlimited job listings", "AI-powered freelancer matching", "Secure escrow payments", "Real-time project tracking"}));
     }
 
+    @Async
     public void sendFreelancerRegistrationEmail(String to, String fullName) {
         send(to, "🎉 Welcome to TalentFlowAI — Your Freelancer Account is Ready!",
                 registrationTemplate(fullName, "Freelancer",
@@ -55,6 +56,7 @@ public class EmailService {
                         new String[]{"AI-matched project recommendations", "Showcase your portfolio & skills", "Secure milestone-based payments", "Build your reputation with verified reviews"}));
     }
 
+    @Async
     public void sendAdminRegistrationEmail(String to, String fullName) {
         send(to, "🎉 Welcome to TalentFlowAI — Your Admin Account is Ready!",
                 registrationTemplate(fullName, "Administrator",
@@ -65,6 +67,7 @@ public class EmailService {
 
     // ── ACCOUNT LOCKED email ─────────────────────────────────────
 
+    @Async
     public void sendAccountLockedEmail(String to, String fullName, String reason, long secondsRemaining) {
         String minutes = secondsRemaining > 60
                 ? (secondsRemaining / 60) + " minute(s)"
@@ -94,19 +97,90 @@ public class EmailService {
                     """.formatted(fullName, reason, minutes)));
     }
 
+    // ── SENSITIVE ACTION OTP email ────────────────────────────────
+
+    @Async
+    public void sendSensitiveActionOtpEmail(String to, String fullName, String action, String otp) {
+        String actionLabel = switch (action) {
+            case "WITHDRAW"        -> "Fund Withdrawal";
+            case "CHANGE_EMAIL"    -> "Email Address Change";
+            case "CHANGE_PASSWORD" -> "Password Change";
+            default                -> action;
+        };
+        send(to, "🔐 Verification Code — " + actionLabel + " | TalentFlowAI",
+                baseTemplate("#f59e0b", """
+                    <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">
+                      Action Verification Required 🔐
+                    </h1>
+                    <p style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.6;">
+                      Hi <strong style="color:#ffffff;">%s</strong>,
+                    </p>
+                    <p style="margin:0 0 16px;color:#94a3b8;font-size:14px;line-height:1.6;">
+                      A verification code has been requested to authorise the following action on your account:
+                    </p>
+                    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:20px 24px;margin-bottom:24px;text-align:center;">
+                      <p style="margin:0 0 8px;color:#fbbf24;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">
+                        Action: %s
+                      </p>
+                      <p style="margin:0;font-size:40px;font-weight:800;color:#ffffff;letter-spacing:0.3em;">%s</p>
+                      <p style="margin:8px 0 0;color:#94a3b8;font-size:12px;">This code expires in 5 minutes</p>
+                    </div>
+                    <p style="margin:0 0 24px;color:#94a3b8;font-size:13px;line-height:1.6;">
+                      If you did not request this action, please ignore this email and consider changing your password immediately.
+                    </p>
+                    <p style="margin:0;color:#475569;font-size:12px;">
+                      Contact support at
+                      <a href="mailto:support@talentflowai.lk" style="color:#f59e0b;">support@talentflowai.lk</a>
+                    </p>
+                    """.formatted(fullName, actionLabel, otp)));
+    }
+
+    // ── ACCOUNT DELETED BY ADMIN email ───────────────────────────
+
+    @Async
+    public void sendAccountDeletedByAdminEmail(String to, String fullName) {
+        send(to, "⚠️ Your TalentFlowAI Account Has Been Removed",
+                baseTemplate("#ef4444", """
+                    <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">
+                      Account Removed ⚠️
+                    </h1>
+                    <p style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.6;">
+                      Hi <strong style="color:#ffffff;">%s</strong>,
+                    </p>
+                    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+                      <p style="margin:0 0 12px;color:#fca5a5;font-size:14px;font-weight:600;">Your account has been permanently deleted by a platform administrator.</p>
+                      <p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6;">
+                        All your data, including your profile, credentials, and associated records, has been removed from the TalentFlowAI platform.
+                        This action cannot be undone.
+                      </p>
+                    </div>
+                    <p style="margin:0 0 24px;color:#94a3b8;font-size:13px;line-height:1.6;">
+                      If you believe this was done in error or you have questions, please contact our support team immediately.
+                    </p>
+                    <p style="margin:0;color:#475569;font-size:12px;">
+                      Contact support at
+                      <a href="mailto:support@talentflowai.lk" style="color:#ef4444;">support@talentflowai.lk</a>
+                    </p>
+                    """.formatted(fullName)));
+    }
+
     // ── LOGIN SUCCESS emails ──────────────────────────────────────
+
+    @Async
     public void sendClientLoginEmail(String to, String fullName) {
         send(to, "✅ Successful Login — TalentFlowAI Client Portal",
                 loginTemplate(fullName, "Client", "#4361ee",
                         "You've successfully signed in to your Client dashboard. If this wasn't you, please secure your account immediately."));
     }
 
+    @Async
     public void sendFreelancerLoginEmail(String to, String fullName) {
         send(to, "✅ Successful Login — TalentFlowAI Freelancer Portal",
                 loginTemplate(fullName, "Freelancer", "#667eea",
                         "You've successfully signed in to your Freelancer dashboard. New project matches may be waiting for you!"));
     }
 
+    @Async
     public void sendAdminLoginEmail(String to, String fullName) {
         send(to, "✅ Successful Login — TalentFlowAI Admin Portal",
                 loginTemplate(fullName, "Administrator", "#f093fb",

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import HomePageButton from '../components/HomePageButton';
 import Toast, { useToast } from '../components/Toast';
@@ -16,10 +16,12 @@ const ClientLoginPage = () => {
     const navigate = useNavigate();
     const { toasts, success, error: toastError } = useToast();
 
-    // countdown timer for locked state
-    useState(() => {
-        if (lockCountdown <= 0) return;
-        const t = setInterval(() => setLockCountdown(c => { if (c <= 1) { clearInterval(t); return 0; } return c - 1; }), 1000);
+    useEffect(() => {
+        if (lockCountdown <= 0) return undefined;
+        const t = setInterval(() => setLockCountdown((c) => {
+            if (c <= 1) { clearInterval(t); return 0; }
+            return c - 1;
+        }), 1000);
         return () => clearInterval(t);
     }, [lockCountdown]);
 

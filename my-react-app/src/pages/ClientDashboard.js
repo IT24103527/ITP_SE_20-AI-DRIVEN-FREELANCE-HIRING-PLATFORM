@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './ClientDashboard.css';
+import RecommendationPage from "./RecommendationPage.js";
+import HistoryPage from "./HistoryPage.js";
 
 const API = 'http://localhost:8080';
 
@@ -313,6 +315,7 @@ const ClientDashboard = () => {
 
     const navItems = [
         { key: 'overview',  icon: '🏠', label: 'Overview' },
+        { key: 'recommendation', icon: '🤖', label: 'AI Recommendation' },
         { key: 'post-job',  icon: '➕', label: 'Post a Job' },
         { key: 'my-jobs',   icon: '💼', label: 'My Jobs' },
         { key: 'profile',   icon: '👤', label: 'My Profile' },
@@ -406,6 +409,7 @@ const ClientDashboard = () => {
                         <div className="dashboard-card overview-card">
                             <div className="card-header"><h2>Quick Actions</h2></div>
                             <div className="quick-actions">
+                                <button className="quick-action-btn client-action" onClick={() => setActiveTab("recommendation")}>AI Recommended Freelancers</button>
                                 <button className="quick-action-btn client-action" onClick={() => setActiveTab('post-job')}>➕ Post a Job</button>
                                 <button className="quick-action-btn client-action" onClick={() => setActiveTab('my-jobs')}>💼 My Jobs</button>
                                 <button className="quick-action-btn client-action" onClick={() => setActiveTab('profile')}>✏️ Edit Profile</button>
@@ -422,6 +426,24 @@ const ClientDashboard = () => {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* ── AI RECOMMENDATION ── */}
+                {activeTab === 'recommendation' && (
+                    <RecommendationPage
+                        onViewHistory={() => setActiveTab('history')}
+                        onHire={(freelancer) => console.log("Hire:", freelancer)}
+                        onViewProfile={(freelancer) => console.log("View:", freelancer)}
+                    />
+                )}
+
+                {/* ── HISTORY ── */}
+                {activeTab === 'history' && (
+                    <HistoryPage
+                        onNewSearch={() => setActiveTab('recommendation')}
+                        onHire={(freelancer) => console.log("Hire:", freelancer)}
+                        onViewDashboard={() => setActiveTab('overview')}
+                    />
                 )}
 
                 {/* ── POST A JOB ── */}

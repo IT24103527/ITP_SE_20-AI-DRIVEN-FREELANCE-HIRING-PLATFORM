@@ -35,7 +35,7 @@ const BlogPage = () => (
                             </div>
                             <h3>{post.title}</h3>
                             <div className="blog-date">{post.date}</div>
-                            <a href="#" className="blog-read-link">Read Article →</a>
+                            <Link to="/contact" className="blog-read-link">Read Article →</Link>
                         </div>
                     ))}
                 </div>

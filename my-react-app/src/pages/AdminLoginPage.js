@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import bgImage from './assets/img9.jpg';
 import './AdminLoginPage.css';
@@ -14,9 +14,12 @@ const AdminLoginPage = () => {
     const [lockCountdown, setLockCountdown] = useState(0);
     const navigate = useNavigate();
 
-    useState(() => {
-        if (lockCountdown <= 0) return;
-        const t = setInterval(() => setLockCountdown(c => { if (c <= 1) { clearInterval(t); return 0; } return c - 1; }), 1000);
+    useEffect(() => {
+        if (lockCountdown <= 0) return undefined;
+        const t = setInterval(() => setLockCountdown((c) => {
+            if (c <= 1) { clearInterval(t); return 0; }
+            return c - 1;
+        }), 1000);
         return () => clearInterval(t);
     }, [lockCountdown]);
 
@@ -174,7 +177,7 @@ const AdminLoginPage = () => {
                             <div className="otp-verify-box">
                                 <div className="otp-icon">🔐</div>
                                 <h3 className="form-title">Admin Verification</h3>
-                                <p className="form-subtitle">Enter the 6-digit code from your authenticator app (Google Authenticator / Microsoft Authenticator)</p>
+                                <p className="form-subtitle">{otpMessage || 'Enter the 6-digit code from your authenticator app (Google Authenticator / Microsoft Authenticator)'}</p>
                                 <form onSubmit={handleOtpVerify}>
                                     <div className="form-group">
                                         <label htmlFor="otp">6-Digit Verification Code</label>

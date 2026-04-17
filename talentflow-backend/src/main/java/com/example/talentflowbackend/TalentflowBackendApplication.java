@@ -8,6 +8,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class TalentflowBackendApplication {
     public static void main(String[] args) {
-        SpringApplication.run(TalentflowBackendApplication.class, args);
+        // Tune JVM for faster startup
+        System.setProperty("spring.jmx.enabled", "false");
+        SpringApplication app = new SpringApplication(TalentflowBackendApplication.class);
+        app.setLazyInitialization(true); // beans init on first use, not at startup
+        app.run(args);
     }
 }

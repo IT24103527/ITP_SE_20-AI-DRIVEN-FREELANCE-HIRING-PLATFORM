@@ -3,8 +3,7 @@ package com.example.talentflowbackend.service;
 import com.example.talentflowbackend.dto.*;
 import com.example.talentflowbackend.entity.Role;
 import com.example.talentflowbackend.entity.User;
-import com.example.talentflowbackend.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.talentflowbackend.repository.UserRepository;import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +31,7 @@ class AuthServiceTest {
     @Mock private JwtService jwtService;
     @Mock private OtpService otpService;
     @Mock private EmailService emailService;
+    @Mock private TokenRefreshService tokenRefreshService;
 
     @InjectMocks
     private AuthService authService;
@@ -168,15 +168,13 @@ class AuthServiceTest {
     @Test
     @DisplayName("login() — missing role returns 'Role is required'")
     void login_missingRole_returnsRoleRequired() {
-        when(userRepository.findByEmail("client@test.com"))
-                .thenReturn(Optional.of(activeClientUser("client@test.com")));
-
         LoginRequest req = new LoginRequest();
         req.setEmail("client@test.com"); req.setPassword("Pass1"); req.setRole(null);
 
         AuthResponse resp = authService.login(req);
 
         assertEquals("Role is required to log in.", resp.getMessage());
+        verify(userRepository, never()).findByEmail(any());
     }
 
     @Test
@@ -302,6 +300,8 @@ class AuthServiceTest {
         when(otpService.verifyCode(any(), any())).thenReturn(true);
         when(jwtService.generateToken(any(User.class), any(Role.class))).thenReturn("jwt.token.here");
         when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(tokenRefreshService.issueTokenPair(any(), any()))
+                .thenReturn(new TokenPair("jwt.token.here", "refresh.token.here"));
 
         AuthResponse resp = authService.verifyLoginOtp("client@test.com", "123456", "CLIENT");
 

@@ -19,5 +19,6 @@ public class AuthResponse {
     private Long lockSecondsRemaining;
     private String qrCode;
     private String totpSecret;
+    private String refreshToken;
     private User user;
 }

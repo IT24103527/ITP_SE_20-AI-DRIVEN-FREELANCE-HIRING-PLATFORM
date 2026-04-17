@@ -75,7 +75,8 @@ public class SecurityConfig {
                     "/api/auth/verify-login-otp",
                     "/api/auth/refresh",
                     "/api/v1/auth/**",
-                    "/api/otp/**"
+                    "/api/otp/**",
+                    "/api/recommendations"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/client/**").hasRole("CLIENT")

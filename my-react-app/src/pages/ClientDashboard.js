@@ -17,6 +17,190 @@ const ClientDashboard = () => {
     const [message, setMessage] = useState({ text: '', type: '' });
     const [loading, setLoading] = useState(false);
 
+    // My Jobs
+    const [myJobs, setMyJobs] = useState([]);
+    const [jobsLoading, setJobsLoading] = useState(false);
+
+    // Post/Edit a Job
+    const [editJobId, setEditJobId] = useState(null);
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [jobForm, setJobForm] = useState({ title: '', description: '', budget: '', deadline: '', requiredSkills: '', gender: '', careerLevel: '', industry: '', experience: '', qualification: '', location: '', jobType: 'Full-Time', companyLogo: '' });
+    const [postMsg, setPostMsg] = useState('');
+    const [postLoading, setPostLoading] = useState(false);
+
+    // Mobile sidebar
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const getTodayDate = () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const getTwoMonthsLaterDate = () => {
+        const date = new Date();
+        date.setMonth(date.getMonth() + 2);
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            showMessage('Image must be under 2MB', 'error');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setJobForm({ ...jobForm, companyLogo: reader.result });
+            setLogoPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleDeleteJob = async (jobId) => {
+        if (!window.confirm('Are you sure you want to delete this job?')) return;
+        try {
+            const res = await fetch(`${API}/api/jobs/${jobId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                showMessage('Job deleted successfully!', 'success');
+                fetchMyJobs();
+            } else showMessage('Failed to delete job', 'error');
+        } catch (e) { showMessage('Delete failed', 'error'); }
+    };
+
+    const startEditJob = (job) => {
+        setEditJobId(job.id || job._id);
+        const deadlineFormatted = job.deadline ? new Date(job.deadline).toISOString().split('T')[0] : '';
+        setJobForm({
+            title: job.title || '',
+            description: job.description || '',
+            budget: job.budget || '',
+            deadline: deadlineFormatted,
+            requiredSkills: job.requiredSkills || '',
+            gender: job.gender || 'Any',
+            careerLevel: job.careerLevel || '',
+            industry: job.industry || '',
+            experience: job.experience || '',
+            qualification: job.qualification || '',
+            location: job.location || '',
+            jobType: job.jobType || 'Full-Time',
+            companyLogo: job.companyLogo || ''
+        });
+        setLogoPreview(job.companyLogo || null);
+        setActiveTab('post-job');
+    };
+
+    const handlePostJob = async (e) => {
+        e.preventDefault();
+
+        const errors = validateForm();
+        if (errors.length > 0) {
+            setPostMsg(`❌ ${errors[0]}`);
+            showMessage(errors[0], 'error');
+            return;
+        }
+
+        setPostLoading(true);
+        setPostMsg('');
+
+        try {
+            const endpoint = editJobId ? `${API}/api/jobs/${editJobId}` : `${API}/api/jobs`;
+            const method = editJobId ? 'PUT' : 'POST';
+
+            const res = await fetch(endpoint, {
+                method: method,
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(jobForm)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setPostMsg(`✅ Job ${editJobId ? 'updated' : 'posted'} successfully!`);
+                setJobForm({ title: '', description: '', budget: '', deadline: '', requiredSkills: '', gender: '', careerLevel: '', industry: '', experience: '', qualification: '', location: '', jobType: 'Full-Time', companyLogo: '' });
+                setEditJobId(null);
+                setLogoPreview(null);
+                showMessage(`Job ${editJobId ? 'updated' : 'posted'} successfully!`, 'success');
+                fetchMyJobs();
+                setActiveTab('my-jobs');
+            } else {
+                setPostMsg(data.message || `Failed to ${editJobId ? 'update' : 'post'} job.`);
+            }
+        } catch (e) {
+            setPostMsg(`Failed to ${editJobId ? 'update' : 'post'} job. Please ensure the backend is running.`);
+        } finally {
+            setPostLoading(false);
+        }
+    };
+
+    const validateForm = () => {
+        const errors = [];
+        if (!jobForm.title.trim()) errors.push('Job title is required');
+        if (!jobForm.description.trim()) {
+            errors.push('Description is required');
+        } else if (jobForm.description.trim().length < 20 || jobForm.description.trim().length > 2000) {
+            errors.push('Description must be between 20 and 2000 characters');
+        }
+
+        // Budget validation: 0-100,000,000
+        const budgetNum = Number(jobForm.budget);
+        if (isNaN(budgetNum) || budgetNum < 0 || budgetNum > 100000000) {
+            errors.push('Budget must be between 0 and 100,000,000');
+        }
+
+        // Deadline validation: today to two months future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const deadline = new Date(jobForm.deadline);
+        const twoMonthsLater = new Date();
+        twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+        twoMonthsLater.setHours(23, 59, 59, 999);
+
+        if (!jobForm.deadline) {
+            errors.push('Deadline is required');
+        } else if (deadline < today) {
+            errors.push('Deadline cannot be in the past');
+        } else if (deadline > twoMonthsLater) {
+            errors.push('Deadline must be within the next two months');
+        }
+
+        if (!jobForm.location.trim()) errors.push('Location is required');
+        if (!jobForm.careerLevel.trim()) errors.push('Career level is required');
+        if (!jobForm.industry.trim()) errors.push('Industry is required');
+        if (!jobForm.experience.trim()) errors.push('Experience is required');
+        if (!jobForm.qualification.trim()) errors.push('Qualification is required');
+        if (!jobForm.requiredSkills.trim()) errors.push('Required skills are required');
+
+        return errors;
+    };
+    const fetchMyJobs = async () => {
+        setJobsLoading(true);
+        try {
+            const res = await fetch(`${API}/api/jobs/my`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMyJobs(Array.isArray(data) ? data : (data.jobs || data.content || []));
+            } else {
+                setMyJobs([]);
+            }
+        } catch (e) {
+            setMyJobs([]);
+        } finally {
+            setJobsLoading(false);
+        }
+    };
+
+
+
     const token = localStorage.getItem('token');
 
     const showMessage = useCallback((text, type) => {
@@ -152,13 +336,21 @@ const ClientDashboard = () => {
                     </div>
                 </div>
                 <nav className="sidebar-nav">
-                    <button className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('profile')}>👤 My Profile</button>
-                    <button className={activeTab === 'security' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('security')}>🔒 Security</button>
-                    <button className={activeTab === 'danger' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('danger')}>⚠️ Account</button>
+                    {navItems.map(item => (
+                        <button
+                            key={item.key}
+                            className={activeTab === item.key ? 'nav-item active' : 'nav-item'}
+                            onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
+                        >
+                            <span className="nav-icon">{item.icon}</span>
+                            <span className="nav-label">{item.label}</span>
+                        </button>
+                    ))}
                 </nav>
                 <Link to="/" className="home-btn">🏠 Home</Link>
                 <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
             </aside>
+            {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
             <main className="dashboard-main">
                 <div className="dashboard-header">

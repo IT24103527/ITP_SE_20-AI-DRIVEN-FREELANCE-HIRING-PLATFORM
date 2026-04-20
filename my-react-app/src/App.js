@@ -22,6 +22,8 @@ const AdminLoginPage        = lazy(() => import('./pages/AdminLoginPage'));
 const ClientDashboard       = lazy(() => import('./pages/ClientDashboard'));
 const FreelancerDashboard   = lazy(() => import('./pages/FreelancerDashboard'));
 const AdminDashboard        = lazy(() => import('./pages/AdminDashboard'));
+const ClientProposalContractPage = lazy(() => import('./pages/ClientProposalContractPage'));
+const FreelancerProposalContractPage = lazy(() => import('./pages/FreelancerProposalContractPage'));
 
 const AboutUsPage           = lazy(() => import('./pages/AboutUsPage'));
 const CareersPage           = lazy(() => import('./pages/CareersPage'));
@@ -74,6 +76,8 @@ function App() {
 
                         <Route path="/client-dashboard"   element={<ClientDashboard />} />
                         <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
+                        <Route path="/client-proposals-contracts" element={<ClientProposalContractPage />} />
+                        <Route path="/freelancer-proposals-contracts" element={<FreelancerProposalContractPage />} />
                         <Route path="/admin-dashboard"    element={<AdminDashboard />} />
 
                         <Route path="/about"              element={<AboutUsPage />} />

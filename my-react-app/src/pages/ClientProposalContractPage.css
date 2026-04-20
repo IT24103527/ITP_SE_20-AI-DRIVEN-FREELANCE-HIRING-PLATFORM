@@ -1,0 +1,41 @@
+@import './FreelancerProposalContractPage.css';
+
+.client-theme {
+    background: radial-gradient(circle at top right, #5a1d2e, #361423 50%, #1d0d15 100%);
+}
+
+.client-theme .module-link-btn {
+    border: 1px solid #7a334b;
+    background: #5a1d2e;
+}
+
+.client-theme .module-link-btn.refresh {
+    background: #8f2f4e;
+}
+
+.client-theme .module-tabs button {
+    border: 1px solid #7a334b;
+    background: #451928;
+}
+
+.client-theme .module-tabs button.active {
+    background: #b24468;
+    border-color: #b24468;
+}
+
+.client-theme .module-card {
+    background: rgba(44, 14, 27, 0.8);
+    border: 1px solid rgba(201, 95, 131, 0.35);
+}
+
+.client-theme .module-card button {
+    background: #b24468;
+}
+
+.client-theme .module-card button.reject {
+    background: #803045;
+}
+
+.client-theme .notification.unread {
+    border-left-color: #d86c8f;
+}

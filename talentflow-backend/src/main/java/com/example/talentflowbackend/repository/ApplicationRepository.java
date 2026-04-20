@@ -8,7 +8,10 @@ import java.util.List;
 
 @Repository
 public interface ApplicationRepository extends MongoRepository<Application, String> {
-    List<Application> findByFreelancerEmailOrderByAppliedAtDesc(String freelancerEmail);
+    List<Application> findByFreelancerEmailAndStatusNotOrderByAppliedAtDesc(String freelancerEmail, String status);
     List<Application> findByJobIdOrderByAppliedAtDesc(String jobId);
+    List<Application> findByJobIdInAndStatusNotOrderByAppliedAtDesc(List<String> jobIds, String status);
+    List<Application> findByClientEmailAndStatusNotOrderByAppliedAtDesc(String clientEmail, String status);
+    boolean existsByJobIdAndFreelancerEmailAndStatusNot(String jobId, String freelancerEmail, String status);
     long countByJobId(String jobId);
 }

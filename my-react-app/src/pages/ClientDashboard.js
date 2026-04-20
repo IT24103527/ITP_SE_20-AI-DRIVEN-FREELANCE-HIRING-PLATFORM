@@ -203,6 +203,8 @@ const ClientDashboard = () => {
 
     const token = localStorage.getItem('token');
 
+    const normalizeRole = (role) => String(role || '').replace(/^ROLE_/, '').toUpperCase();
+
     const showMessage = useCallback((text, type) => {
         setMessage({ text, type });
         setTimeout(() => setMessage({ text: '', type: '' }), 4000);
@@ -215,9 +217,31 @@ const ClientDashboard = () => {
             });
             if (res.status === 401) { navigate('/login'); return; }
             const data = await res.json();
-            const storedRole = localStorage.getItem('userRole');
-            const userRole = data.role || storedRole;
-            if (userRole && userRole !== 'CLIENT') { navigate('/login'); return; }
+            const storedRole = normalizeRole(localStorage.getItem('userRole'));
+            const roleCandidates = [
+                storedRole,
+                data.role,
+                ...(Array.isArray(data.roles)
+                    ? data.roles.map((r) => (typeof r === 'string' ? r : r?.name))
+                    : [])
+            ]
+                .filter(Boolean)
+                .map((r) => normalizeRole(r));
+
+            if (!roleCandidates.includes('CLIENT')) {
+                navigate('/login');
+                return;
+            }
+
+            if (storedRole && storedRole !== 'CLIENT') {
+                navigate('/freelancer-dashboard');
+                return;
+            }
+
+            if (!storedRole) {
+                localStorage.setItem('userRole', 'CLIENT');
+            }
+
             setUser(data);
             setProfileData({
                 fullName: data.fullName || '',
@@ -301,6 +325,21 @@ const ClientDashboard = () => {
         navigate('/login');
     };
 
+    const handleSwitchToFreelancerDashboard = () => {
+        const previousRole = normalizeRole(localStorage.getItem('previousDashboardRole'));
+        const targetRole = previousRole && previousRole !== 'CLIENT' ? previousRole : 'FREELANCER';
+
+        localStorage.setItem('previousDashboardRole', 'CLIENT');
+        localStorage.setItem('userRole', targetRole);
+
+        if (targetRole === 'FREELANCER') {
+            navigate('/freelancer-dashboard');
+            return;
+        }
+
+        navigate('/client-dashboard');
+    };
+
     const getStatusColor = (status) => {
         const s = (status || '').toUpperCase();
         if (s === 'ACTIVE' || s === 'OPEN') return 'status-accepted';
@@ -313,6 +352,7 @@ const ClientDashboard = () => {
     const navItems = [
         { key: 'overview',  icon: '🏠', label: 'Overview' },
         { key: 'recommendation', icon: '🤖', label: 'AI Recommendation' },
+        { key: 'proposal-contract-module', icon: '📨', label: 'Review Proposals' },
         { key: 'post-job',  icon: '➕', label: 'Post a Job' },
         { key: 'my-jobs',   icon: '💼', label: 'My Jobs' },
         { key: 'profile',   icon: '👤', label: 'My Profile' },
@@ -340,22 +380,34 @@ const ClientDashboard = () => {
                         <button
                             key={item.key}
                             className={activeTab === item.key ? 'nav-item active' : 'nav-item'}
-                            onClick={() => { setActiveTab(item.key); setSidebarOpen(false); }}
+                            onClick={() => {
+                                if (item.key === 'proposal-contract-module') {
+                                    navigate('/client-proposals-contracts');
+                                    return;
+                                }
+                                setActiveTab(item.key);
+                                setSidebarOpen(false);
+                            }}
                         >
                             <span className="nav-icon">{item.icon}</span>
                             <span className="nav-label">{item.label}</span>
                         </button>
                     ))}
                 </nav>
-                <Link to="/" className="home-btn">🏠 Home</Link>
-                <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
+                <div className="sidebar-actions">
+                    <button className="sidebar-switch-btn" onClick={handleSwitchToFreelancerDashboard}>🔁 Switch to Freelancer Dashboard</button>
+                    <Link to="/" className="home-btn">🏠 Home</Link>
+                    <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
+                </div>
             </aside>
             {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
             <main className="dashboard-main">
                 <div className="dashboard-header">
-                    <h1>Welcome back, {user.fullName?.split(' ')[0]}!</h1>
-                    <p>Manage your client profile and account settings</p>
+                    <div>
+                        <h1>Welcome back, {user.fullName?.split(' ')[0]}!</h1>
+                        <p>Manage your client profile and account settings</p>
+                    </div>
                 </div>
 
                 {message.text && (

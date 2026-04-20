@@ -1,0 +1,366 @@
+.proposal-module-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, #12355b, #0b1f36 50%, #071426 100%);
+    color: #e7eef7;
+    padding: 24px;
+}
+
+.module-loading {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #c9d7e8;
+    background: #0b1f36;
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.module-header h1 {
+    margin: 0;
+    font-size: 1.7rem;
+}
+
+.module-header p {
+    margin: 6px 0 0;
+    color: #aec3db;
+}
+
+.module-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.module-link-btn {
+    border: 1px solid #2f5378;
+    background: #153a60;
+    color: #e7eef7;
+    padding: 9px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.module-link-btn.refresh {
+    background: #1f5f8b;
+}
+
+.module-alert {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+
+.module-alert.success {
+    background: rgba(52, 199, 89, 0.18);
+    border: 1px solid rgba(52, 199, 89, 0.5);
+}
+
+.module-alert.error {
+    background: rgba(255, 99, 99, 0.18);
+    border: 1px solid rgba(255, 99, 99, 0.5);
+}
+
+.module-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.module-tabs button {
+    border: 1px solid #2f5378;
+    background: #102b47;
+    color: #dfe9f4;
+    padding: 10px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.module-tabs button.active {
+    background: #2c7fbe;
+    border-color: #2c7fbe;
+}
+
+.tab-badge {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(231, 238, 247, 0.2);
+    color: #e7eef7;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.tab-badge.has-unread {
+    background: #57a9ef;
+    color: #052341;
+}
+
+.module-section {
+    display: grid;
+    gap: 14px;
+}
+
+.module-card {
+    background: rgba(11, 31, 54, 0.78);
+    border: 1px solid rgba(87, 138, 190, 0.4);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.module-card h3 {
+    margin: 0 0 8px;
+}
+
+.module-card p {
+    margin: 8px 0;
+}
+
+.module-card textarea {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #3f6a94;
+    background: #0b1f36;
+    color: #e8f0fa;
+}
+
+.module-card input[type='number'],
+.module-card input[type='file'] {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #3f6a94;
+    background: #0b1f36;
+    color: #e8f0fa;
+}
+
+.module-card button {
+    margin-top: 10px;
+    background: #2c7fbe;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.module-card button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.muted {
+    color: #b6c9de;
+    font-size: 0.92rem;
+}
+
+.field-error {
+    margin: 6px 0 0;
+    color: #ff9b9b;
+    font-size: 0.85rem;
+}
+
+.empty-state {
+    padding: 18px;
+    border: 1px dashed #496d93;
+    border-radius: 10px;
+    color: #b6c9de;
+    text-align: center;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.pending,
+.status-badge.started {
+    background: rgba(255, 200, 80, 0.2);
+    color: #ffd277;
+}
+
+.status-badge.accepted,
+.status-badge.in_progress,
+.status-badge.completed {
+    background: rgba(82, 198, 115, 0.2);
+    color: #87e7a3;
+}
+
+.status-badge.rejected {
+    background: rgba(255, 99, 99, 0.2);
+    color: #ffaaaa;
+}
+
+.status-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.notification.unread {
+    border-left: 4px solid #57a9ef;
+}
+
+.notification.read {
+    opacity: 0.85;
+}
+
+.edit-form-section {
+    background: rgba(7, 20, 38, 0.5);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    border: 1px solid rgba(87, 138, 190, 0.3);
+}
+
+.form-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #c9d7e8;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #3f6a94;
+    background: #0b1f36;
+    color: #e8f0fa;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #57a9ef;
+    box-shadow: 0 0 0 2px rgba(87, 169, 239, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #2c7fbe;
+    color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #3d92d4;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #2f5378;
+    color: #e7eef7;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #416d8f;
+}
+
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.proposal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-edit,
+.btn-delete {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.btn-edit {
+    background: #1f5f8b;
+    color: #e7eef7;
+}
+
+.btn-edit:hover:not(:disabled) {
+    background: #2a7ba8;
+}
+
+.btn-delete {
+    background: #9b2c2c;
+    color: #ffe8e8;
+}
+
+.btn-delete:hover:not(:disabled) {
+    background: #c73a3a;
+}
+
+.btn-edit:disabled,
+.btn-delete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .proposal-module-page {
+        padding: 14px;
+    }
+
+    .module-header {
+        flex-direction: column;
+    }
+}

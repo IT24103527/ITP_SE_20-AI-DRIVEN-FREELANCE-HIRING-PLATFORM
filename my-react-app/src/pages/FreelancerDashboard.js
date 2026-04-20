@@ -19,6 +19,8 @@ const FreelancerDashboard = () => {
 
     const token = localStorage.getItem('token');
 
+    const normalizeRole = (role) => String(role || '').replace(/^ROLE_/, '').toUpperCase();
+
     const showMessage = useCallback((text, type) => {
         setMessage({ text, type });
         setTimeout(() => setMessage({ text: '', type: '' }), 4000);
@@ -31,9 +33,31 @@ const FreelancerDashboard = () => {
             });
             if (res.status === 401) { navigate('/freelancer-login'); return; }
             const data = await res.json();
-            const storedRole = localStorage.getItem('userRole');
-            const userRole = data.role || storedRole;
-            if (userRole && userRole !== 'FREELANCER') { navigate('/freelancer-login'); return; }
+            const storedRole = normalizeRole(localStorage.getItem('userRole'));
+            const roleCandidates = [
+                storedRole,
+                data.role,
+                ...(Array.isArray(data.roles)
+                    ? data.roles.map((r) => (typeof r === 'string' ? r : r?.name))
+                    : [])
+            ]
+                .filter(Boolean)
+                .map((r) => normalizeRole(r));
+
+            if (!roleCandidates.includes('FREELANCER')) {
+                navigate('/freelancer-login');
+                return;
+            }
+
+            if (storedRole && storedRole !== 'FREELANCER') {
+                navigate('/client-dashboard');
+                return;
+            }
+
+            if (!storedRole) {
+                localStorage.setItem('userRole', 'FREELANCER');
+            }
+
             setUser(data);
             const skills = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
             setSkillsList(skills);
@@ -128,6 +152,21 @@ const FreelancerDashboard = () => {
         } catch (e) { showMessage('Delete failed', 'error'); }
     };
 
+    const handleSwitchToClientDashboard = () => {
+        const previousRole = normalizeRole(localStorage.getItem('previousDashboardRole'));
+        const targetRole = previousRole && previousRole !== 'FREELANCER' ? previousRole : 'CLIENT';
+
+        localStorage.setItem('previousDashboardRole', 'FREELANCER');
+        localStorage.setItem('userRole', targetRole);
+
+        if (targetRole === 'CLIENT') {
+            navigate('/client-dashboard');
+            return;
+        }
+
+        navigate('/freelancer-dashboard');
+    };
+
     const handleLogout = () => { localStorage.clear(); navigate('/freelancer-login'); };
 
     if (!user) return <div className="dashboard-loading">Loading...</div>;
@@ -149,17 +188,23 @@ const FreelancerDashboard = () => {
                 <nav className="sidebar-nav">
                     <button className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('profile')}>👤 My Profile</button>
                     <button className={activeTab === 'portfolio' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('portfolio')}>💼 Portfolio</button>
+                    <Link to="/freelancer-proposals-contracts" className="nav-item">📨 Proposals & Contracts</Link>
                     <button className={activeTab === 'security' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('security')}>🔒 Security</button>
                     <button className={activeTab === 'danger' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('danger')}>⚠️ Account</button>
                 </nav>
-                <Link to="/" className="home-btn">🏠 Home</Link>
-                <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
+                <div className="sidebar-actions">
+                    <button className="sidebar-switch-btn" onClick={handleSwitchToClientDashboard}>🔁 Switch to Client Dashboard</button>
+                    <Link to="/" className="home-btn">🏠 Home</Link>
+                    <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
+                </div>
             </aside>
 
             <main className="dashboard-main">
                 <div className="dashboard-header">
-                    <h1>Welcome, {user.fullName?.split(' ')[0]}!</h1>
-                    <p>{user.professionalTitle || 'Freelancer Dashboard'}</p>
+                    <div>
+                        <h1>Welcome, {user.fullName?.split(' ')[0]}!</h1>
+                        <p>{user.professionalTitle || 'Freelancer Dashboard'}</p>
+                    </div>
                 </div>
 
                 {message.text && <div className={`alert alert-${message.type}`}>{message.text}</div>}

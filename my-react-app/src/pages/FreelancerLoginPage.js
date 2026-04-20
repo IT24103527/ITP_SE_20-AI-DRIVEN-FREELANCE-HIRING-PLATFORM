@@ -89,6 +89,9 @@ const FreelancerLoginPage = () => {
                     return;
                 }
                 localStorage.setItem('token', data.token);
+                if (data.refreshToken) {
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                }
                 localStorage.setItem('userRole', data.role);
                 if (formData.rememberMe) localStorage.setItem('rememberedEmail', formData.email);
                 navigate('/freelancer-dashboard');

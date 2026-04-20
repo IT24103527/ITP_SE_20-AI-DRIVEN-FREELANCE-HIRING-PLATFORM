@@ -19,15 +19,26 @@ public class Application {
     private String jobId;
     private String jobTitle;  // denormalized for display
 
+    // Client info (owner of the job)
+    private String clientEmail;
+    private String clientId;
+
     // Freelancer info
     private String freelancerEmail;
     private String freelancerName;
     private String freelancerId;
 
+    private Double proposedBudget;
+    private Integer estimatedDeliveryDays;
     private String coverLetter;
+    private String attachmentFileName;
+    private String attachmentContentType;
+    private String attachmentBase64;
 
     @Builder.Default
-    private String status = "PENDING"; // PENDING, ACCEPTED, REJECTED
+    private String status = "PENDING"; // PENDING, ACCEPTED, REJECTED, DELETED
+
+    private Date deletedAt;
 
     private Date appliedAt;
     private Date updatedAt;

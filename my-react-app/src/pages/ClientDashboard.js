@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './ClientDashboard.css';
@@ -21,6 +22,11 @@ const ClientDashboard = () => {
     const [myJobs, setMyJobs] = useState([]);
     const [jobsLoading, setJobsLoading] = useState(false);
 
+    // NEW: Inline Proposals (to show proposals inside dashboard)
+    const [showingProposalsForJob, setShowingProposalsForJob] = useState(null); // jobId
+    const [inlineProposals, setInlineProposals] = useState([]);
+    const [inlineLoading, setInlineLoading] = useState(false);
+
     // Post/Edit a Job
     const [editJobId, setEditJobId] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
@@ -30,6 +36,39 @@ const ClientDashboard = () => {
 
     // Mobile sidebar
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+     //labels for the recomendation ml
+    const getMatchLabel = (prob) => 
+    {
+        if (prob > 0.85) return { text: "🔥 BEST MATCH", color: "#10b981" };
+        if (prob > 0.75) return { text: "🟢 High Potential", color: "#34d399" };
+        if (prob > 0.6) return { text: "🟡 Strong Fit", color: "#f59e0b" };
+        return { text: "⚪ Consider", color: "#94a3b8" };
+    };
+
+     // NEW FUNCTION: Show proposals inline inside the dashboard
+    const showProposalsInline = async (jobId) => {
+        setInlineLoading(true);
+        setShowingProposalsForJob(jobId);
+        try {
+            const res = await fetch(`${API}/client/jobs/${jobId}/proposals`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setInlineProposals(data);
+            } else {
+                setInlineProposals([]);
+                showMessage('Failed to load proposals for this job', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('Could not load proposals', 'error');
+            setInlineProposals([]);
+        } finally {
+            setInlineLoading(false);
+        }
+    };
 
     const getTodayDate = () => {
         const today = new Date();
@@ -198,6 +237,8 @@ const ClientDashboard = () => {
             setJobsLoading(false);
         }
     };
+
+    
 
 
 
@@ -725,10 +766,106 @@ const ClientDashboard = () => {
                                         ))}
                                     </div>
                                 )}
+
+                                <button
+                                    className="view-proposals-btn"
+                                    onClick={() => showProposalsInline(job.id || job._id)}
+                                    >
+                                    View Proposals →
+                                </button>
                             </div>
                         ))}
                     </div>
                 )}
+
+            {/* INLINE PROPOSALS SECTION - Appears when user clicks View Proposals */}
+
+                {showingProposalsForJob && (
+                    <div className="inline-proposals-section" style={{ marginTop: '50px', paddingTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                             <h2>🤖 AI-Evaluated Proposals for Job #{showingProposalsForJob}</h2>
+                                <button 
+                                 onClick={() => setShowingProposalsForJob(null)}
+                                    style={{ 
+                                            padding: '10px 22px', 
+                                            background: '#334155', 
+                                            color: 'white', 
+                                            border: 'none', 
+                                            borderRadius: '10px', 
+                                            cursor: 'pointer',
+                                            fontWeight: '600'
+                                            }}
+                                    >
+                                        ← Back to My Jobs
+                                    </button>
+                                </div>
+
+                    {inlineLoading ? (
+                         <div className="section-loading">Loading proposals...</div>
+                             ) : inlineProposals.length === 0 ? (
+                                    <p>No proposals received yet for this job.</p>
+                            ) : (<div className="proposals-grid">
+                                    {inlineProposals.map((p, index) => {
+                                            const prob = Math.round((p.successProbability || 0) * 100);
+                                            const match = getMatchLabel(p.successProbability || 0);
+
+                                    return (
+                                        <div key={p.id || index} className={`proposal-card glass-card ${index === 0 ? "top-pick" : ""}`}>
+                                            {index === 0 && <div className="top-badge">🔥 AI TOP PICK</div>}
+
+                                                <div className="card-header">
+                                                     <div>
+                                                        <h3>{p.freelancerName}</h3>
+                                                        <span className="match-label" style={{ color: match.color }}>
+                                                            {match.text}
+                                                         </span>
+                                                    </div>
+
+                                                    <div className="circular-progress">
+                                                        <svg width="78" height="78" viewBox="0 0 42 42">
+                                                            <circle cx="21" cy="21" r="15" fill="none" stroke="#1e2937" strokeWidth="6" />
+                                                            <circle
+                                                                cx="21" cy="21" r="15"
+                                                                 fill="none"
+                                                                stroke="#4361ee"
+                                                                strokeWidth="6"
+                                                                strokeDasharray={`${prob} 100`}
+                                                                strokeLinecap="round"
+                                                                transform="rotate(-90 21 21)"
+                                                            />
+                                                        </svg>
+                                                <div className="percentage">{prob}%</div>
+                                                    </div>
+                                                </div>
+
+                                                <p className="proposal-message">{p.message || "No additional message provided."}</p>
+
+                                                 <div className="metrics">
+                                                        <div className="metric">
+                                                            <span className="metric-label">Proposed</span>
+                                                            <span className="metric-value">${p.proposedPrice}</span>
+                                                        </div>
+                                                        <div className="metric">
+                                                            <span className="metric-label">Budget</span>
+                                                            <span className="metric-value">${p.estimatedBudget}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="actions">
+                                                        <button className="hire-btn" onClick={() => handleUpdateAppStatus(p.id || p._id, 'ACCEPTED')}>
+                                                            Hire This Freelancer
+                                                        </button>
+                                                        <button className="view-profile-btn" onClick={() => navigate(`/freelancer/${p.freelancerId}`)}>
+                                                            View Profile
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                 {/* ── PROFILE ── */}
                 {activeTab === 'profile' && (

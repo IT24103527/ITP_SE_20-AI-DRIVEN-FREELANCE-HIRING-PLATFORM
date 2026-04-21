@@ -12,6 +12,7 @@ import com.example.talentflowbackend.repository.JobRepository;
 import com.example.talentflowbackend.repository.NotificationRepository;
 import com.example.talentflowbackend.repository.UserRepository;
 import com.example.talentflowbackend.service.JwtService;
+import com.example.talentflowbackend.service.MlService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class ApplicationController {
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final MlService mlService;
 
     // POST an application (Freelancer applying for a job)
     @PostMapping
@@ -111,11 +113,13 @@ public class ApplicationController {
             app.setUpdatedAt(new Date());
             app.setStatus("PENDING");
 
-            applicationRepository.save(app);
+            Application saved = applicationRepository.save(app);
 
             // Increment job application count
             job.setApplicationCount(job.getApplicationCount() + 1);
             jobRepository.save(job);
+
+            mlService.callmlserver(freelancer,payload,job,saved);
 
             return ResponseEntity.ok(app);
         } catch (Exception e) {

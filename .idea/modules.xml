@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/USERpart.iml" filepath="$PROJECT_DIR$/.idea/USERpart.iml" />
-      <module fileurl="file://$PROJECT_DIR$/talentflow-backend/talentflowbackend.iml" filepath="$PROJECT_DIR$/talentflow-backend/talentflowbackend.iml" />
     </modules>
   </component>
 </project>

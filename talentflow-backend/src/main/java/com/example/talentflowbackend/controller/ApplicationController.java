@@ -113,13 +113,13 @@ public class ApplicationController {
             app.setUpdatedAt(new Date());
             app.setStatus("PENDING");
 
+            mlService.callmlserver(freelancer,payload,job,app);
+
             Application saved = applicationRepository.save(app);
 
             // Increment job application count
             job.setApplicationCount(job.getApplicationCount() + 1);
             jobRepository.save(job);
-
-            mlService.callmlserver(freelancer,payload,job,saved);
 
             return ResponseEntity.ok(app);
         } catch (Exception e) {

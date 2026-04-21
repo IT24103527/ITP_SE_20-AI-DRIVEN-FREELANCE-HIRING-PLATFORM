@@ -22,6 +22,7 @@ public class AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
     private final TokenRefreshService tokenRefreshService;
+    private final FreelancerProfileService freelancerProfileService;
 
     @Value("${admin.registration.code}")
     private String adminRegistrationCode;
@@ -83,7 +84,9 @@ public class AuthService {
                 if (req.getHourlyRate()        != null) user.setHourlyRate(req.getHourlyRate());
                 if (req.getExperience()        != null) user.setExperience(req.getExperience());
                 user.setUpdatedAt(new Date());
-                userRepository.save(user);
+                User saved = userRepository.save(user);
+                freelancerProfileService.createProfile(saved.getId());
+
                 emailService.sendFreelancerRegistrationEmail(req.getEmail(), user.getFullName());
                 return AuthResponse.builder()
                         .message("Freelancer account created! Use your new Freelancer password + authenticator app to log in.")

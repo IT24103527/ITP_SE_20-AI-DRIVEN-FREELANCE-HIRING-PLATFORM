@@ -5,6 +5,7 @@ import com.example.talentflowbackend.entity.Role;
 import com.example.talentflowbackend.entity.User;
 import com.example.talentflowbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,8 @@ public class AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
     private final TokenRefreshService tokenRefreshService;
-    private final FreelancerProfileService freelancerProfileService;
+    @Autowired
+    private  FreelancerProfileService freelancerProfileService;
 
     @Value("${admin.registration.code}")
     private String adminRegistrationCode;
@@ -84,8 +86,7 @@ public class AuthService {
                 if (req.getHourlyRate()        != null) user.setHourlyRate(req.getHourlyRate());
                 if (req.getExperience()        != null) user.setExperience(req.getExperience());
                 user.setUpdatedAt(new Date());
-                User saved = userRepository.save(user);
-                freelancerProfileService.createProfile(saved.getId());
+                userRepository.save(user);
 
                 emailService.sendFreelancerRegistrationEmail(req.getEmail(), user.getFullName());
                 return AuthResponse.builder()
@@ -102,6 +103,7 @@ public class AuthService {
                     .totpSecret(totpSecret).roles(new HashSet<>(Set.of(Role.FREELANCER)))
                     .createdAt(new Date()).updatedAt(new Date()).isActive(true).build();
             userRepository.save(user);
+            freelancerProfileService.createProfile(user.getId());
             String qrCode = otpService.generateQrCodeDataUri(req.getEmail(), totpSecret);
             emailService.sendFreelancerRegistrationEmail(req.getEmail(), req.getFullName());
             return AuthResponse.builder().message("Freelancer registered. Scan the QR code with your authenticator app.")

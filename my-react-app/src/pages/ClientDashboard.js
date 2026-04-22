@@ -27,6 +27,10 @@ const ClientDashboard = () => {
     const [inlineProposals, setInlineProposals] = useState([]);
     const [inlineLoading, setInlineLoading] = useState(false);
 
+    // NEW: Proposals sorting & insights
+    const [proposalSort, setProposalSort] = useState('match-desc');
+    const [insights, setInsights] = useState({ total: 0, avgMatch: 0, bestMatch: null, budgetRange: '', proposedRange: '' });
+
     // Post/Edit a Job
     const [editJobId, setEditJobId] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
@@ -46,6 +50,49 @@ const ClientDashboard = () => {
         return { text: "⚪ Consider", color: "#94a3b8" };
     };
 
+    //NEW: Insight computing in proposals
+    const computeInsights = (proposals) => {
+    if (!proposals.length) return {
+        total: 0,
+        avgMatch: 0,
+        bestMatch: null,
+        budgetRange: '—',
+        proposedRange: '—'
+    };
+        const total = proposals.length;
+        const avgMatch = proposals.reduce((sum, p) => 
+            sum + (p.successProbability || 0), 0) / total;
+        const bestMatch = proposals.reduce((best, p) => 
+            (p.successProbability || 0) > (best?.successProbability || 0) ? p : best, proposals[0]);
+        const budgets = proposals.map(p => 
+            p.estimatedBudget || 0).filter(b => b > 0);
+        const proposedPrices = proposals.map(p => 
+            p.proposedPrice || 0).filter(pr => pr > 0);
+
+        const budgetRange = budgets.length ? `$${Math.min(...budgets)} – $${Math.max(...budgets)}` : '—';
+
+        const proposedRange = proposedPrices.length ? `$${Math.min(...proposedPrices)} – $${Math.max(...proposedPrices)}` : '—';
+
+        return { total, avgMatch: (avgMatch * 100).toFixed(1), bestMatch, budgetRange, proposedRange };
+    };
+
+    //NEW : proposal sorted
+    const getSortedProposals = () => {
+    const proposals = [...inlineProposals];
+    switch (proposalSort) {
+            case 'match-desc':
+                return proposals.sort((a,b) => (b.successProbability || 0) - (a.successProbability || 0));
+            case 'price-asc':
+                return proposals.sort((a,b) => (a.proposedPrice || 0) - (b.proposedPrice || 0));
+            case 'price-desc':
+                return proposals.sort((a,b) => (b.proposedPrice || 0) - (a.proposedPrice || 0));
+            case 'date-desc':
+                return proposals.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            default:
+                return proposals;
+        }
+    };
+
      // NEW FUNCTION: Show proposals inline inside the dashboard
     const showProposalsInline = async (jobId) => {
         setInlineLoading(true);
@@ -57,14 +104,17 @@ const ClientDashboard = () => {
             if (res.ok) {
                 const data = await res.json();
                 setInlineProposals(data);
+                setInsights(computeInsights(data));
             } else {
                 setInlineProposals([]);
+                setInsights(computeInsights([]));
                 showMessage('Failed to load proposals for this job', 'error');
             }
         } catch (e) {
             console.error(e);
             showMessage('Could not load proposals', 'error');
             setInlineProposals([]);
+            setInsights(computeInsights([]));
         } finally {
             setInlineLoading(false);
         }
@@ -713,159 +763,178 @@ const ClientDashboard = () => {
                     </div>
                 )}
 
-                {/* ── MY JOBS ── */}
-                {activeTab === 'my-jobs' && (
-                    <div className="dashboard-card">
-                        <div className="card-header">
-                            <h2>My Posted Jobs</h2>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                <button className="refresh-btn" onClick={fetchMyJobs} disabled={jobsLoading}>🔄 Refresh</button>
-                                <button className="post-job-btn" onClick={() => setActiveTab('post-job')}>➕ Post New Job</button>
-                            </div>
-                        </div>
+{/* ── MY JOBS (with inline proposals under each job) ── */}
+{activeTab === 'my-jobs' && (
+    <div className="dashboard-card">
+        <div className="card-header">
+            <h2>My Posted Jobs</h2>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button className="refresh-btn" onClick={fetchMyJobs} disabled={jobsLoading}>🔄 Refresh</button>
+                <button className="post-job-btn" onClick={() => setActiveTab('post-job')}>➕ Post New Job</button>
+            </div>
+        </div>
 
-                        {jobsLoading && <div className="section-loading"><div className="loading-spinner" /> Loading your jobs…</div>}
+        {jobsLoading && <div className="section-loading"><div className="loading-spinner" /> Loading your jobs…</div>}
 
-                        {!jobsLoading && myJobs.length === 0 && (
-                            <div className="empty-state">
-                                <div className="empty-icon">💼</div>
-                                <p>You haven't posted any jobs yet. <button className="link-btn" onClick={() => setActiveTab('post-job')}>Post your first job →</button></p>
-                            </div>
-                        )}
+        {!jobsLoading && myJobs.length === 0 && (
+            <div className="empty-state">
+                <div className="empty-icon">💼</div>
+                <p>You haven't posted any jobs yet. <button className="link-btn" onClick={() => setActiveTab('post-job')}>Post your first job →</button></p>
+            </div>
+        )}
 
-                        {!jobsLoading && myJobs.map(job => (
-                            <div key={job.id || job._id} className="job-card client-job-card">
-                                <div className="job-card-header">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                        {job.companyLogo && (
-                                            <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 }}>
-                                                <img src={job.companyLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            </div>
-                                        )}
-                                        <div>
-                                            <h3 className="job-title">{job.title || 'Untitled Job'}</h3>
-                                            <p className="job-meta">
-                                                {job.budget && <span>💰 ${job.budget}</span>}
-                                                {job.deadline && <span>📅 Due: {new Date(job.deadline).toLocaleDateString()}</span>}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                        <button className="edit-btn" onClick={() => startEditJob(job)} style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>✏️ Edit</button>
-                                        <button className="delete-btn" onClick={() => handleDeleteJob(job.id || job._id)} style={{ padding: '6px 12px', background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>🗑 Delete</button>
-                                        <span className={`status-badge ${getStatusColor(job.status)}`}>
-                                            {(job.status || 'ACTIVE').toUpperCase()}
-                                        </span>
-                                    </div>
-                                </div>
-                                <p className="job-description">{job.description || 'No description.'}</p>
-                                {job.requiredSkills && (
-                                    <div className="job-skills">
-                                        {job.requiredSkills.split(',').map(s => (
-                                            <span key={s.trim()} className="skill-tag client-skill-tag">{s.trim()}</span>
-                                        ))}
+        {!jobsLoading && myJobs.map(job => {
+            const isExpanded = showingProposalsForJob === (job.id || job._id);
+            return (
+                <div key={job.id || job._id} style={{ marginBottom: '32px' }}>
+                    {/* Job Card */}
+                    <div className="job-card client-job-card">
+                        <div className="job-card-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                {job.companyLogo && (
+                                    <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                                        <img src={job.companyLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     </div>
                                 )}
-
-                                <button
-                                    className="view-proposals-btn"
-                                    onClick={() => showProposalsInline(job.id || job._id)}
-                                    >
-                                    View Proposals →
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-            {/* INLINE PROPOSALS SECTION - Appears when user clicks View Proposals */}
-
-                {showingProposalsForJob && (
-                    <div className="inline-proposals-section" style={{ marginTop: '50px', paddingTop: '30px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                             <h2>🤖 AI-Evaluated Proposals for Job #{showingProposalsForJob}</h2>
-                                <button 
-                                 onClick={() => setShowingProposalsForJob(null)}
-                                    style={{ 
-                                            padding: '10px 22px', 
-                                            background: '#334155', 
-                                            color: 'white', 
-                                            border: 'none', 
-                                            borderRadius: '10px', 
-                                            cursor: 'pointer',
-                                            fontWeight: '600'
-                                            }}
-                                    >
-                                        ← Back to My Jobs
-                                    </button>
+                                <div>
+                                    <h3 className="job-title">{job.title || 'Untitled Job'}</h3>
+                                    <p className="job-meta">
+                                        {job.budget && <span>💰 ${job.budget}</span>}
+                                        {job.deadline && <span>📅 Due: {new Date(job.deadline).toLocaleDateString()}</span>}
+                                    </p>
                                 </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <button className="edit-btn" onClick={() => startEditJob(job)} style={{ padding: '6px 12px', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>✏️ Edit</button>
+                                <button className="delete-btn" onClick={() => handleDeleteJob(job.id || job._id)} style={{ padding: '6px 12px', background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>🗑 Delete</button>
+                                <span className={`status-badge ${getStatusColor(job.status)}`}>
+                                    {(job.status || 'ACTIVE').toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+                        <p className="job-description">{job.description || 'No description.'}</p>
+                        {job.requiredSkills && (
+                            <div className="job-skills">
+                                {job.requiredSkills.split(',').map(s => (
+                                    <span key={s.trim()} className="skill-tag client-skill-tag">{s.trim()}</span>
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            className="view-proposals-btn"
+                            onClick={() => {
+                                if (isExpanded) {
+                                    setShowingProposalsForJob(null);
+                                    setInlineProposals([]);
+                                } else {
+                                    showProposalsInline(job.id || job._id);
+                                }
+                            }}
+                        >
+                            {isExpanded ? 'Hide Proposals ←' : 'View Proposals →'}
+                        </button>
+                    </div>
 
-                    {inlineLoading ? (
-                         <div className="section-loading">Loading proposals...</div>
-                             ) : inlineProposals.length === 0 ? (
-                                    <p>No proposals received yet for this job.</p>
-                            ) : (<div className="proposals-grid">
-                                    {inlineProposals.map((p, index) => {
+                    {/* Inline Proposals Section (only shown for this job when expanded) */}
+                    {isExpanded && (
+                        <div className="inline-proposals-section" style={{ marginTop: '20px', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, background: 'linear-gradient(135deg, #fff, #60a5fa)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+                                    🤖 AI‑Evaluated Proposals
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#94a3b8', marginLeft: '12px' }}>Job #{job.id || job._id}</span>
+                                </h3>
+                            </div>
+
+                            {inlineLoading && (
+                                <div className="proposals-loading">
+                                    <div className="loading-spinner" style={{ width: 40, height: 40 }} />
+                                    <span style={{ marginLeft: 16 }}>Analyzing proposals with AI...</span>
+                                </div>
+                            )}
+
+                            {!inlineLoading && inlineProposals.length > 0 && (
+                                <>
+                                    <div className="proposals-insights">
+                                        <div className="insight-card"><div className="insight-label">📊 TOTAL PROPOSALS</div><div className="insight-value">{insights.total}</div></div>
+                                        <div className="insight-card"><div className="insight-label">🎯 AVG. MATCH</div><div className="insight-value">{insights.avgMatch}%</div><div className="insight-sub">AI confidence score</div></div>
+                                        <div className="insight-card"><div className="insight-label">🏆 BEST MATCH</div><div className="insight-value">{insights.bestMatch?.freelancerName?.split(' ')[0] || '—'}</div><div className="insight-sub">{Math.round((insights.bestMatch?.successProbability || 0)*100)}% match</div></div>
+                                        <div className="insight-card"><div className="insight-label">💰 BUDGET RANGE</div><div className="insight-value">{insights.budgetRange}</div><div className="insight-sub">Proposed: {insights.proposedRange}</div></div>
+                                    </div>
+
+                                    <div className="sort-bar">
+                                        <span className="sort-label">SORT BY</span>
+                                        <select className="sort-select" value={proposalSort} onChange={(e) => setProposalSort(e.target.value)}>
+                                            <option value="match-desc">⭐ Match % (High to Low)</option>
+                                            <option value="price-asc">💰 Price (Low to High)</option>
+                                            <option value="price-desc">💰 Price (High to Low)</option>
+                                            <option value="date-desc">📅 Newest First</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="proposals-grid">
+                                        {getSortedProposals().map((p, idx) => {
                                             const prob = Math.round((p.successProbability || 0) * 100);
                                             const match = getMatchLabel(p.successProbability || 0);
-
-                                    return (
-                                        <div key={p.id || index} className={`proposal-card glass-card ${index === 0 ? "top-pick" : ""}`}>
-                                            {index === 0 && <div className="top-badge">🔥 AI TOP PICK</div>}
-
-                                                <div className="card-header">
-                                                     <div>
-                                                        <h3>{p.freelancerName}</h3>
-                                                        <span className="match-label" style={{ color: match.color }}>
-                                                            {match.text}
-                                                         </span>
-                                                    </div>
-
-                                                    <div className="circular-progress">
-                                                        <svg width="78" height="78" viewBox="0 0 42 42">
-                                                            <circle cx="21" cy="21" r="15" fill="none" stroke="#1e2937" strokeWidth="6" />
-                                                            <circle
-                                                                cx="21" cy="21" r="15"
-                                                                 fill="none"
-                                                                stroke="#4361ee"
-                                                                strokeWidth="6"
-                                                                strokeDasharray={`${prob} 100`}
-                                                                strokeLinecap="round"
-                                                                transform="rotate(-90 21 21)"
-                                                            />
-                                                        </svg>
-                                                <div className="percentage">{prob}%</div>
-                                                    </div>
-                                                </div>
-
-                                                <p className="proposal-message">{p.message || "No additional message provided."}</p>
-
-                                                 <div className="metrics">
-                                                        <div className="metric">
-                                                            <span className="metric-label">Proposed</span>
-                                                            <span className="metric-value">${p.proposedPrice}</span>
+                                            const isTopPick = idx === 0 && proposalSort === 'match-desc';
+                                            return (
+                                                <div key={p.id || idx} className={`proposal-card ${isTopPick ? 'top-pick' : ''}`}>
+                                                    {isTopPick && <div className="top-badge">🔥 AI TOP PICK</div>}
+                                                    <div className="card-header">
+                                                        <div>
+                                                            <h3>{p.freelancerName || 'Anonymous'}</h3>
+                                                            <span className="match-label" style={{ color: match.color, background: 'rgba(0,0,0,0.3)' }}>{match.text}</span>
                                                         </div>
-                                                        <div className="metric">
-                                                            <span className="metric-label">Budget</span>
-                                                            <span className="metric-value">${p.estimatedBudget}</span>
+                                                        <div className="circular-progress">
+                                                            <svg width="78" height="78" viewBox="0 0 42 42">
+                                                                <defs>
+                                                                    <linearGradient id={`grad-${p.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                                                        <stop offset="0%" stopColor="#2563eb" />
+                                                                        <stop offset="100%" stopColor="#06b6d4" />
+                                                                    </linearGradient>
+                                                                </defs>
+                                                                <circle cx="21" cy="21" r="15" fill="none" stroke="#1e2937" strokeWidth="5" />
+                                                                <circle
+                                                                    cx="21" cy="21" r="15"
+                                                                    fill="none"
+                                                                    stroke={`url(#grad-${p.id})`}
+                                                                    strokeWidth="5"
+                                                                    strokeDasharray={`${prob} 100`}
+                                                                    strokeLinecap="round"
+                                                                    transform="rotate(-90 21 21)"
+                                                                />
+                                                            </svg>
+                                                            <div className="percentage">{prob}%</div>
                                                         </div>
                                                     </div>
-
+                                                    <p className="proposal-message">“{p.message || 'No additional message provided.'}”</p>
+                                                    <div className="metrics">
+                                                        <div className="metric"><span className="metric-label">Proposed Price</span><span className="metric-value">${p.proposedPrice}</span></div>
+                                                        <div className="metric"><span className="metric-label">Job Budget</span><span className="metric-value">${p.estimatedBudget}</span></div>
+                                                    </div>
                                                     <div className="actions">
-                                                        <button className="hire-btn" onClick={() => handleUpdateAppStatus(p.id || p._id, 'ACCEPTED')}>
-                                                            Hire This Freelancer
-                                                        </button>
-                                                        <button className="view-profile-btn" onClick={() => navigate(`/freelancer/${p.freelancerId}`)}>
-                                                            View Profile
-                                                        </button>
+                                                        <button className="hire-btn" onClick={() => handleUpdateAppStatus(p.id || p._id, 'ACCEPTED')}>✨ Hire Now</button>
+                                                        <button className="view-profile-btn" onClick={() => navigate(`/freelancer/${p.freelancerId}`)}>👤 View Profile</button>
                                                     </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                )}
-                            </div>
-                        )}
+                                </>
+                            )}
+
+                            {!inlineLoading && inlineProposals.length === 0 && (
+                                <div className="empty-state" style={{ padding: '40px' }}>
+                                    <div className="empty-icon">📭</div>
+                                    <p>No proposals received for this job yet.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        })}
+    </div>
+)}
 
                 {/* ── PROFILE ── */}
                 {activeTab === 'profile' && (

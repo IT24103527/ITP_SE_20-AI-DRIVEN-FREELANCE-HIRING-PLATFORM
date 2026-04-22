@@ -15,6 +15,7 @@ import com.example.talentflowbackend.repository.JobRepository;
 import com.example.talentflowbackend.repository.NotificationRepository;
 import com.example.talentflowbackend.repository.UserRepository;
 import com.example.talentflowbackend.service.JwtService;
+import com.example.talentflowbackend.service.MlService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,9 @@ class ProposalContractUnitTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private MlService mlService;
+
     @Test
     @DisplayName("UNIT-PROPOSAL-01: Freelancer can submit a proposal successfully")
     void applyForJob_persistsApplicationAndIncrementsCount() {
@@ -67,7 +71,8 @@ class ProposalContractUnitTest {
                 notificationRepository,
                 jobRepository,
                 userRepository,
-                jwtService
+                jwtService,
+                mlService
         );
 
         String freelancerEmail = "freelancer@test.com";
@@ -111,7 +116,8 @@ class ProposalContractUnitTest {
                 notificationRepository,
                 jobRepository,
                 userRepository,
-                jwtService
+                jwtService,
+                mlService
         );
 
         String clientEmail = "client@test.com";
@@ -176,7 +182,7 @@ class ProposalContractUnitTest {
                 notificationRepository,
                 jobRepository,
                 userRepository,
-                jwtService
+                jwtService,mlService
         );
 
         String freelancerEmail = "freelancer@test.com";

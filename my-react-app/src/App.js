@@ -32,6 +32,8 @@ const ContactUsPage         = lazy(() => import('./pages/ContactUsPage'));
 const PrivacyPolicyPage     = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsOfServicePage    = lazy(() => import('./pages/TermsOfServicePage'));
 const DebugDashboard        = lazy(() => import('./components/DebugDashboard'));
+const PublicReviewsPage     = lazy(() => import('./pages/PublicReviewsPage'));
+
 
 // Minimal fallback — matches the dark background so there's no flash
 const PageFallback = () => (
@@ -87,6 +89,7 @@ function App() {
                         <Route path="/terms"              element={<TermsOfServicePage />} />
 
                         <Route path="/debug"              element={<DebugDashboard />} />
+                        <Route path="/reviews"            element={<PublicReviewsPage />} />
 
                         <Route path="*" element={
                             <div style={{ padding: '50px', textAlign: 'center', background: '#020818', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

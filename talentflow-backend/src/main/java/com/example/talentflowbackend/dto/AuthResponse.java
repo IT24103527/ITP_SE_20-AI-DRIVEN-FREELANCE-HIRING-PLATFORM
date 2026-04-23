@@ -21,4 +21,8 @@ public class AuthResponse {
     private String totpSecret;
     private String refreshToken;
     private User user;
+    private String fullName;
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 }

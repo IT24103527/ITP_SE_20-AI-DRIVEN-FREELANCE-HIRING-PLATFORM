@@ -89,7 +89,10 @@ const FreelancerLoginPage = () => {
                     return;
                 }
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('userRole', data.role);
+                localStorage.setItem('userRole', 'FREELANCER');
+                localStorage.setItem('fullName', data.fullName || data.name || formData.email.split('@')[0]);
+                localStorage.setItem('userEmail', formData.email);
+
                 if (formData.rememberMe) localStorage.setItem('rememberedEmail', formData.email);
                 navigate('/freelancer-dashboard');
             } else if (data.locked) {

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import './ClientDashboard.css';
 import RecommendationPage from "./RecommendationPage.js";
 import HistoryPage from "./HistoryPage.js";
+import ClientReviewPage from "./ClientReviewPage.js";
 
 const API = 'http://localhost:8080';
 
@@ -316,6 +317,7 @@ const ClientDashboard = () => {
         { key: 'post-job',  icon: '➕', label: 'Post a Job' },
         { key: 'my-jobs',   icon: '💼', label: 'My Jobs' },
         { key: 'profile',   icon: '👤', label: 'My Profile' },
+        { key: 'reviews',   icon: '⭐', label: 'Reviews & Sentiment' },
         { key: 'security',  icon: '🔒', label: 'Security' },
         { key: 'danger',    icon: '⚠️', label: 'Account' },
     ];
@@ -734,6 +736,8 @@ const ClientDashboard = () => {
                         )}
                     </div>
                 )}
+                {/* ── REVIEWS ── */}
+                {activeTab === 'reviews' && <ClientReviewPage />}
 
                 {activeTab === 'security' && (
                     <div className="dashboard-card">

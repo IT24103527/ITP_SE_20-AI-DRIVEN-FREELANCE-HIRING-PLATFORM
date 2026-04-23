@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './FreelancerDashboard.css';
+import FreelancerReviewPage from "./FreelancerReviewPage.js";
 
 const API = 'http://localhost:8080';
 
@@ -149,6 +150,7 @@ const FreelancerDashboard = () => {
                 <nav className="sidebar-nav">
                     <button className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('profile')}>👤 My Profile</button>
                     <button className={activeTab === 'portfolio' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('portfolio')}>💼 Portfolio</button>
+                    <button className={activeTab === 'reviews' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('reviews')}>⭐ Reviews & Sentiment</button>
                     <button className={activeTab === 'security' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('security')}>🔒 Security</button>
                     <button className={activeTab === 'danger' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('danger')}>⚠️ Account</button>
                 </nav>
@@ -250,6 +252,7 @@ const FreelancerDashboard = () => {
                         </form>
                     </div>
                 )}
+                {activeTab === 'reviews' && <FreelancerReviewPage />}
 
                 {activeTab === 'security' && (
                     <div className="dashboard-card">

@@ -103,7 +103,10 @@ const ClientLoginPage = () => {
                     return;
                 }
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('userRole', data.role);
+                localStorage.setItem('userRole', 'CLIENT');
+                localStorage.setItem('fullName', data.fullName || data.name || formData.email.split('@')[0]);
+                localStorage.setItem('userEmail', formData.email);
+
                 if (formData.rememberMe) localStorage.setItem('rememberedEmail', formData.email);
                 success('Login successful! Welcome back.');
                 navigate('/client-dashboard');

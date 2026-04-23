@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css'; // Import the main CSS
+import HomeReviewsSection from "./HomeReviewsSection";
+
 
 const HomePage = () => {
     const [activeTab, setActiveTab] = useState('clients');
@@ -167,6 +169,7 @@ const HomePage = () => {
                     </div>
                 </div>
             </section>
+            <HomeReviewsSection />
 
             {/* Newsletter Section - ADD THIS */}
             <section className="newsletter-section">

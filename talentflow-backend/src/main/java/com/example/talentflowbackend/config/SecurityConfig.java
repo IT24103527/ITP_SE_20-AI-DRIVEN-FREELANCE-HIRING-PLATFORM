@@ -76,7 +76,9 @@ public class SecurityConfig {
                     "/api/auth/refresh",
                     "/api/v1/auth/**",
                     "/api/otp/**",
-                    "/api/recommendations"
+                    "/api/recommendations",
+                        "/api/reviews",
+                        "/api/reviews/**"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/client/**").hasRole("CLIENT")

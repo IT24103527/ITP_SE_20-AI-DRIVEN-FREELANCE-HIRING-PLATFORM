@@ -290,7 +290,8 @@ public class AuthService {
                     .roles(user.getRoles() != null
                             ? user.getRoles().stream().map(Role::name).toList()
                             : List.of())
-                    .user(user).build();
+                    .user(user).fullName(user.getFullName())
+                    .build();
 
         } catch (Exception e) {
             return AuthResponse.builder().message("Verification failed: " + e.getMessage()).build();

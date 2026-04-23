@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /**
  * Secure API client with automatic token refresh.
  *

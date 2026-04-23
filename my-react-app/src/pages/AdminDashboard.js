@@ -18,7 +18,139 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
 
+    // Jobs & Proposals
+    const [allJobs, setAllJobs] = useState([]);
+    const [jobsLoading, setJobsLoading] = useState(false);
+    const [showingProposalsForJob, setShowingProposalsForJob] = useState(null);
+    const [inlineProposals, setInlineProposals] = useState([]);
+    const [inlineLoading, setInlineLoading] = useState(false);
+    const [proposalSort, setProposalSort] = useState('match-desc');
+    const [insights, setInsights] = useState({ total: 0, avgMatch: 0, bestMatch: null, budgetRange: '', proposedRange: '' });
+
     const token = localStorage.getItem('token');
+
+//NEW:Functions
+        const getMatchLabel = (prob) => {
+        if (prob > 0.85) return { text: "🔥 BEST MATCH", color: "#10b981" };
+        if (prob > 0.75) return { text: "🟢 High Potential", color: "#34d399" };
+        if (prob > 0.6) return { text: "🟡 Strong Fit", color: "#f59e0b" };
+        return { text: "⚪ Consider", color: "#94a3b8" };
+    };
+
+    const computeInsights = (proposals) => {
+        if (!proposals.length) return { total: 0, avgMatch: 0, bestMatch: null, budgetRange: '—', proposedRange: '—' };
+        const total = proposals.length;
+        const avgMatch = proposals.reduce((sum, p) => sum + (p.successProbability || 0), 0) / total;
+        const bestMatch = proposals.reduce((best, p) => (p.successProbability || 0) > (best?.successProbability || 0) ? p : best, proposals[0]);
+        const budgets = proposals.map(p => p.estimatedBudget || 0).filter(b => b > 0);
+        const proposedPrices = proposals.map(p => p.proposedPrice || 0).filter(pr => pr > 0);
+        const budgetRange = budgets.length ? `$${Math.min(...budgets)} – $${Math.max(...budgets)}` : '—';
+        const proposedRange = proposedPrices.length ? `$${Math.min(...proposedPrices)} – $${Math.max(...proposedPrices)}` : '—';
+        return { total, avgMatch: (avgMatch * 100).toFixed(1), bestMatch, budgetRange, proposedRange };
+    };
+
+    const getSortedProposals = () => {
+        const proposals = [...inlineProposals];
+        switch (proposalSort) {
+            case 'match-desc': return proposals.sort((a,b) => (b.successProbability || 0) - (a.successProbability || 0));
+            case 'price-asc': return proposals.sort((a,b) => (a.proposedPrice || 0) - (b.proposedPrice || 0));
+            case 'price-desc': return proposals.sort((a,b) => (b.proposedPrice || 0) - (a.proposedPrice || 0));
+            case 'date-desc': return proposals.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            default: return proposals;
+        }
+    };
+
+    const showProposalsInline = async (jobId) => {
+    setInlineLoading(true);
+    setShowingProposalsForJob(jobId);
+    try {
+        const res = await fetch(`${API}/client/jobs/${jobId}/proposals`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            setInlineProposals(data);
+            setInsights(computeInsights(data));
+        } else {
+            setInlineProposals([]);
+            setInsights(computeInsights([]));
+            showMessage('Failed to load proposals for this job', 'error');
+        }
+    } catch (e) {
+        showMessage('Could not load proposals', 'error');
+        setInlineProposals([]);
+        setInsights(computeInsights([]));
+    } finally {
+        setInlineLoading(false);
+    }
+    };
+
+    const handleUpdateAppStatus = async (proposalId, status) => {
+    try {
+        const res = await fetch(`${API}/admin/proposals/${proposalId}/status`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+            showMessage(`Proposal ${status.toLowerCase()} successfully!`, 'success');
+            if (showingProposalsForJob) await showProposalsInline(showingProposalsForJob);
+        } else {
+            const error = await res.json();
+            showMessage(error.message || 'Failed to update proposal status', 'error');
+        }
+    } catch (err) {
+        showMessage('Network error while updating proposal', 'error');
+    }
+    };
+
+    const fetchAllJobs = useCallback(async () => {
+    setJobsLoading(true);
+    try {
+        const res = await fetch(`${API}/api/jobs`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            setAllJobs(Array.isArray(data) ? data : []);
+        } else {
+            setAllJobs([]);
+        }
+    } catch (e) {
+        setAllJobs([]);
+    } finally {
+        setJobsLoading(false);
+    }
+    }, [token]);
+
+    useEffect(() => {
+    if (activeTab === 'jobs-proposals') fetchAllJobs();
+    }, [activeTab, fetchAllJobs]);
+
+    const handleDeleteProposal = async (proposalId, freelancerName) => {
+    if (!window.confirm(`Delete proposal from ${freelancerName}? This action cannot be undone.`)) return;
+    try {
+        const res = await fetch(`${API}/client/proposals/${proposalId}`, {   // For Admin: use '/admin/proposals/...'
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            showMessage(`Proposal from ${freelancerName} deleted successfully`, 'success');
+            // Refresh proposals for the current job
+            if (showingProposalsForJob) {
+                await showProposalsInline(showingProposalsForJob);
+            }
+        } else {
+            const error = await res.json();
+            showMessage(error.message || 'Failed to delete proposal', 'error');
+        }
+    } catch (err) {
+        showMessage('Network error while deleting proposal', 'error');
+    }
+    };
+
+
+
 
     const showMessage = useCallback((text, type) => {
         setMessage({ text, type });
@@ -315,6 +447,163 @@ const AdminDashboard = () => {
                             </table>
                         </div>
                     </div>
+                )}
+
+               {/* ── JOBS & PROPOSALS TAB (with per-job inline proposals) ── */}
+                {activeTab === 'jobs-proposals' && (
+    <div className="dashboard-card">
+        <div className="card-header">
+            <h2>All Jobs & Proposals ({allJobs.length})</h2>
+            <button className="edit-btn" onClick={fetchAllJobs} disabled={jobsLoading}>🔄 Refresh</button>
+        </div>
+
+        {jobsLoading && <div className="section-loading"><div className="loading-spinner" /> Loading jobs...</div>}
+
+        {!jobsLoading && allJobs.length === 0 && (
+            <div className="empty-state">
+                <div className="empty-icon">💼</div>
+                <p>No jobs posted yet.</p>
+            </div>
+        )}
+
+        {!jobsLoading && allJobs.map(job => {
+            const isExpanded = showingProposalsForJob === (job.id || job._id);
+            return (
+                <div key={job.id || job._id} style={{ marginBottom: '32px' }}>
+                    {/* Job Card */}
+                    <div className="job-card admin-job-card">
+                        <div className="job-card-header">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                                {job.companyLogo && (
+                                    <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', flexShrink: 0 }}>
+                                        <img src={job.companyLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </div>
+                                )}
+                                <div>
+                                    <h3 className="job-title">{job.title || 'Untitled Job'}</h3>
+                                    <p className="job-meta">
+                                        {job.budget && <span>💰 ${job.budget}</span>}
+                                        {job.deadline && <span>📅 Due: {new Date(job.deadline).toLocaleDateString()}</span>}
+                                        {job.clientName && <span>👤 {job.clientName}</span>}
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <span className={`status-badge ${job.status === 'ACTIVE' ? 'status-accepted' : 'status-pending'}`}>
+                                    {job.status || 'ACTIVE'}
+                                </span>
+                            </div>
+                        </div>
+                        <p className="job-description">{job.description || 'No description.'}</p>
+                        {job.requiredSkills && (
+                            <div className="job-skills">
+                                {job.requiredSkills.split(',').map(s => (
+                                    <span key={s.trim()} className="skill-tag">{s.trim()}</span>
+                                ))}
+                            </div>
+                        )}
+                        <button 
+                            className="view-proposals-btn" 
+                            onClick={() => {
+                                if (isExpanded) {
+                                    setShowingProposalsForJob(null);
+                                    setInlineProposals([]);
+                                } else {
+                                    showProposalsInline(job.id || job._id);
+                                }
+                            }}
+                        >
+                            {isExpanded ? 'Hide Proposals ←' : 'View Proposals →'}
+                        </button>
+                    </div>
+
+                    {/* Inline Proposals Section (only shown for this job when expanded) */}
+                    {isExpanded && (
+                        <div className="inline-proposals-section" style={{ marginTop: '20px', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, background: 'linear-gradient(135deg, #fff, #60a5fa)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+                                    🤖 AI‑Evaluated Proposals
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#94a3b8', marginLeft: '12px' }}>Job #{job.id || job._id}</span>
+                                </h3>
+                            </div>
+
+                            {inlineLoading && (
+                                <div className="proposals-loading">
+                                    <div className="loading-spinner" style={{ width: 40, height: 40 }} />
+                                    <span style={{ marginLeft: 16 }}>Analyzing proposals with AI...</span>
+                                </div>
+                            )}
+
+                            {!inlineLoading && inlineProposals.length > 0 && (
+                                <>
+                                    <div className="proposals-insights">
+                                        <div className="insight-card"><div className="insight-label">📊 TOTAL PROPOSALS</div><div className="insight-value">{insights.total}</div></div>
+                                        <div className="insight-card"><div className="insight-label">🎯 AVG. MATCH</div><div className="insight-value">{insights.avgMatch}%</div><div className="insight-sub">AI confidence score</div></div>
+                                        <div className="insight-card"><div className="insight-label">🏆 BEST MATCH</div><div className="insight-value">{insights.bestMatch?.freelancerName?.split(' ')[0] || '—'}</div><div className="insight-sub">{Math.round((insights.bestMatch?.successProbability || 0)*100)}% match</div></div>
+                                        <div className="insight-card"><div className="insight-label">💰 BUDGET RANGE</div><div className="insight-value">{insights.budgetRange}</div><div className="insight-sub">Proposed: {insights.proposedRange}</div></div>
+                                    </div>
+
+                                    <div className="sort-bar">
+                                        <span className="sort-label">SORT BY</span>
+                                        <select className="sort-select" value={proposalSort} onChange={(e) => setProposalSort(e.target.value)}>
+                                            <option value="match-desc">⭐ Match % (High to Low)</option>
+                                            <option value="price-asc">💰 Price (Low to High)</option>
+                                            <option value="price-desc">💰 Price (High to Low)</option>
+                                            <option value="date-desc">📅 Newest First</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="proposals-grid">
+                                        {getSortedProposals().map((p, idx) => {
+                                            const prob = Math.round((p.successProbability || 0) * 100);
+                                            const match = getMatchLabel(p.successProbability || 0);
+                                            const isTopPick = idx === 0 && proposalSort === 'match-desc';
+                                            return (
+                                                <div key={p.id || idx} className={`proposal-card ${isTopPick ? 'top-pick' : ''}`}>
+                                                    {isTopPick && <div className="top-badge">🔥 AI TOP PICK</div>}
+                                                    <div className="card-header">
+                                                        <div>
+                                                            <h3>{p.freelancerName || 'Anonymous'}</h3>
+                                                            <span className="match-label" style={{ color: match.color, background: 'rgba(0,0,0,0.3)' }}>{match.text}</span>
+                                                        </div>
+                                                        <div className="circular-progress">
+                                                            <svg width="78" height="78" viewBox="0 0 42 42">
+                                                                <defs><linearGradient id={`grad-${p.id}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#0ea5e9" /><stop offset="100%" stopColor="#06b6d4" /></linearGradient></defs>
+                                                                <circle cx="21" cy="21" r="15" fill="none" stroke="#1e2937" strokeWidth="5" />
+                                                                <circle cx="21" cy="21" r="15" fill="none" stroke={`url(#grad-${p.id})`} strokeWidth="5" strokeDasharray={`${prob} 100`} strokeLinecap="round" transform="rotate(-90 21 21)" />
+                                                            </svg>
+                                                            <div className="percentage">{prob}%</div>
+                                                        </div>
+                                                    </div>
+                                                    <p className="proposal-message">“{p.message || 'No additional message provided.'}”</p>
+                                                    <div className="metrics">
+                                                        <div className="metric"><span className="metric-label">Proposed Price</span><span className="metric-value">${p.proposedPrice}</span></div>
+                                                        <div className="metric"><span className="metric-label">Job Budget</span><span className="metric-value">${p.estimatedBudget}</span></div>
+                                                    </div>
+                                                    <div className="actions">
+                                                        <button className="hire-btn" onClick={() => handleUpdateAppStatus(p.id || p._id, 'ACCEPTED')}>✨ Hire Now</button>
+                                                        <button className="view-profile-btn" onClick={() => navigate(`/freelancer/${p.freelancerId}`)}>👤 View Profile</button>
+                                                        <button className="delete-proposal-btn" onClick={() => handleDeleteProposal(p.id || p._id, p.freelancerName)}>🗑️ Delete</button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+
+                            {!inlineLoading && inlineProposals.length === 0 && (
+                                <div className="empty-state" style={{ padding: '40px' }}>
+                                    <div className="empty-icon">📭</div>
+                                    <p>No proposals received for this job yet.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        })}
+    </div>
                 )}
 
                 {/* ── SECURITY TAB ── */}

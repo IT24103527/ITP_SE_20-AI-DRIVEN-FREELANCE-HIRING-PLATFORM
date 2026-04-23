@@ -49,7 +49,7 @@ const FreelancerRegistrationPage = () => {
 
         if (!formData.fullName.trim())
             newErrors.fullName = 'Full name is required';
-        else if (!/^[a-zA-Z\s'-]+$/.test(formData.fullName.trim()))
+        else if (!/^[a-zA-Z0-9\s'-]+$/.test(formData.fullName.trim()))
             newErrors.fullName = 'Full name can only contain letters, spaces, hyphens, and apostrophes';
 
         if (!formData.email.trim())

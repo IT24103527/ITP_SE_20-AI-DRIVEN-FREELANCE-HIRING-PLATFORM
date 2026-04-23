@@ -83,7 +83,7 @@ public class AuthService {
                 if (req.getHourlyRate()        != null) user.setHourlyRate(req.getHourlyRate());
                 if (req.getExperience()        != null) user.setExperience(req.getExperience());
                 user.setUpdatedAt(new Date());
-                userRepository.save(user);
+                User saved = userRepository.save(user);
                 emailService.sendFreelancerRegistrationEmail(req.getEmail(), user.getFullName());
                 return AuthResponse.builder()
                         .message("Freelancer account created! Use your new Freelancer password + authenticator app to log in.")

@@ -40,9 +40,7 @@ const ClientDashboard = () => {
                 industry: data.industry || '',
                 companySize: data.companySize || ''
             });
-        } catch (e) {
-            showMessage('Failed to load profile', 'error');
-        }
+        } catch (e) { showMessage('Failed to load profile', 'error'); }
     }, [token, navigate, showMessage]);
 
     useEffect(() => {
@@ -51,8 +49,7 @@ const ClientDashboard = () => {
     }, [token, navigate, fetchProfile]);
 
     const handleProfileUpdate = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+        e.preventDefault(); setLoading(true);
         try {
             const res = await fetch(`${API}/api/user/profile`, {
                 method: 'PUT',
@@ -60,26 +57,16 @@ const ClientDashboard = () => {
                 body: JSON.stringify(profileData)
             });
             const data = await res.json();
-            if (res.ok) {
-                setUser(data.user);
-                setEditMode(false);
-                showMessage('Profile updated successfully!', 'success');
-            } else {
-                showMessage(data.message, 'error');
-            }
-        } catch (e) {
-            showMessage('Update failed', 'error');
-        } finally { setLoading(false); }
+            if (res.ok) { setUser(data.user); setEditMode(false); showMessage('Profile updated!', 'success'); }
+            else showMessage(data.message, 'error');
+        } catch { showMessage('Update failed', 'error'); }
+        finally { setLoading(false); }
     };
 
-    const sendPasswordOtp = () => {
-        setOtpSent(true);
-        showMessage('Enter the 6-digit code from your authenticator app', 'success');
-    };
+    const sendPasswordOtp = () => { setOtpSent(true); showMessage('Enter the 6-digit code from your authenticator app', 'success'); };
 
     const handlePasswordChange = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+        e.preventDefault(); setLoading(true);
         try {
             const res = await fetch(`${API}/api/user/change-password`, {
                 method: 'PUT',
@@ -87,30 +74,30 @@ const ClientDashboard = () => {
                 body: JSON.stringify(passwordData)
             });
             const data = await res.json();
-            if (res.ok) {
-                showMessage('Password changed successfully!', 'success');
-                setPasswordData({ currentPassword: '', newPassword: '', otp: '' });
-                setOtpSent(false);
-            } else showMessage(data.message, 'error');
-        } catch (e) { showMessage('Password change failed', 'error'); }
+            if (res.ok) { showMessage('Password changed!', 'success'); setPasswordData({ currentPassword: '', newPassword: '', otp: '' }); setOtpSent(false); }
+            else showMessage(data.message, 'error');
+        } catch { showMessage('Failed', 'error'); }
         finally { setLoading(false); }
     };
 
     const handleDeleteAccount = async () => {
-        if (!window.confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
-        try {
-            const res = await fetch(`${API}/api/user/account`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                localStorage.clear();
-                navigate('/');
-            } else showMessage('Failed to delete account', 'error');
-        } catch (e) { showMessage('Delete failed', 'error'); }
+        if (!window.confirm('Delete your account permanently?')) return;
+        const res = await fetch(`${API}/api/user/account`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) { localStorage.clear(); navigate('/'); }
+        else showMessage('Delete failed', 'error');
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
+                await fetch(`${API}/api/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken })
+                });
+            }
+        } catch { /* never block logout */ }
         localStorage.clear();
         navigate('/login');
     };
@@ -132,9 +119,9 @@ const ClientDashboard = () => {
                     </div>
                 </div>
                 <nav className="sidebar-nav">
-                    <button className={activeTab === 'profile' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('profile')}>👤 My Profile</button>
+                    <button className={activeTab === 'profile'  ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('profile')}>👤 My Profile</button>
                     <button className={activeTab === 'security' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('security')}>🔒 Security</button>
-                    <button className={activeTab === 'danger' ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('danger')}>⚠️ Account</button>
+                    <button className={activeTab === 'danger'   ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab('danger')}>⚠️ Account</button>
                 </nav>
                 <Link to="/" className="home-btn">🏠 Home</Link>
                 <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
@@ -145,40 +132,23 @@ const ClientDashboard = () => {
                     <h1>Welcome back, {user.fullName?.split(' ')[0]}!</h1>
                     <p>Manage your client profile and account settings</p>
                 </div>
-
-                {message.text && (
-                    <div className={`alert alert-${message.type}`}>{message.text}</div>
-                )}
+                {message.text && <div className={`alert alert-${message.type}`}>{message.text}</div>}
 
                 {activeTab === 'profile' && (
                     <div className="dashboard-card">
                         <div className="card-header">
                             <h2>Profile Information</h2>
-                            <button className="edit-btn" onClick={() => setEditMode(!editMode)}>
-                                {editMode ? 'Cancel' : '✏️ Edit'}
-                            </button>
+                            <button className="edit-btn" onClick={() => setEditMode(!editMode)}>{editMode ? 'Cancel' : '✏️ Edit'}</button>
                         </div>
                         {editMode ? (
                             <form onSubmit={handleProfileUpdate} className="profile-form">
                                 <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Full Name</label>
-                                        <input value={profileData.fullName} onChange={e => setProfileData({...profileData, fullName: e.target.value})} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Phone Number</label>
-                                        <input value={profileData.phoneNumber} onChange={e => setProfileData({...profileData, phoneNumber: e.target.value})} />
-                                    </div>
+                                    <div className="form-group"><label>Full Name</label><input value={profileData.fullName} onChange={e => setProfileData({...profileData, fullName: e.target.value})} /></div>
+                                    <div className="form-group"><label>Phone Number</label><input value={profileData.phoneNumber} onChange={e => setProfileData({...profileData, phoneNumber: e.target.value})} /></div>
                                 </div>
                                 <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Company Name</label>
-                                        <input value={profileData.companyName} onChange={e => setProfileData({...profileData, companyName: e.target.value})} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Industry</label>
-                                        <input value={profileData.industry} onChange={e => setProfileData({...profileData, industry: e.target.value})} />
-                                    </div>
+                                    <div className="form-group"><label>Company Name</label><input value={profileData.companyName} onChange={e => setProfileData({...profileData, companyName: e.target.value})} /></div>
+                                    <div className="form-group"><label>Industry</label><input value={profileData.industry} onChange={e => setProfileData({...profileData, industry: e.target.value})} /></div>
                                 </div>
                                 <div className="form-group">
                                     <label>Company Size</label>
@@ -210,25 +180,10 @@ const ClientDashboard = () => {
                     <div className="dashboard-card">
                         <div className="card-header"><h2>Change Password</h2></div>
                         <form onSubmit={handlePasswordChange} className="profile-form">
-                            <div className="form-group">
-                                <label>Current Password</label>
-                                <input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData({...passwordData, currentPassword: e.target.value})} required />
-                            </div>
-                            <div className="form-group">
-                                <label>New Password</label>
-                                <input type="password" value={passwordData.newPassword} onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})} required minLength={8} />
-                            </div>
-                            <div className="otp-section">
-                                <button type="button" className="otp-btn" onClick={sendPasswordOtp}>
-                                        {otpSent ? '✅ Code Sent - Resend' : '📱 Send Verification Code to Phone'}
-                                    </button>
-                            </div>
-                            {otpSent && (
-                                <div className="form-group">
-                                    <label>Enter OTP</label>
-                                    <input type="text" placeholder="6-digit OTP" value={passwordData.otp} onChange={e => setPasswordData({...passwordData, otp: e.target.value})} required maxLength={6} />
-                                </div>
-                            )}
+                            <div className="form-group"><label>Current Password</label><input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData({...passwordData, currentPassword: e.target.value})} required /></div>
+                            <div className="form-group"><label>New Password</label><input type="password" value={passwordData.newPassword} onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})} required minLength={8} /></div>
+                            <div className="otp-section"><button type="button" className="otp-btn" onClick={sendPasswordOtp}>{otpSent ? '✅ OTP Sent - Resend' : '📱 Send OTP'}</button></div>
+                            {otpSent && <div className="form-group"><label>Enter OTP</label><input type="text" placeholder="6-digit OTP" value={passwordData.otp} onChange={e => setPasswordData({...passwordData, otp: e.target.value})} required maxLength={6} /></div>}
                             <button type="submit" className="save-btn" disabled={loading || !otpSent}>{loading ? 'Changing...' : 'Change Password'}</button>
                         </form>
                     </div>

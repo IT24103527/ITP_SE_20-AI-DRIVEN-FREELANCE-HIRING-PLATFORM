@@ -928,20 +928,20 @@
 
 
 
-/* ========== PROPOSALS 2.0 – FUTURISTIC ========== */
+/* ========== PROPOSALS 2.0 – FIXED ========== */
 
 .inline-proposals-section {
     background: rgba(7, 16, 40, 0.65);
     backdrop-filter: blur(16px);
     border-radius: 32px;
     padding: 32px;
-    margin-top: 48px;
+    margin-top: 32px;
     border: 1px solid rgba(37, 99, 235, 0.4);
     box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
 }
 
-/* Insights bar */
+/* Insights bar – better flex + min-width */
 .proposals-insights {
     display: flex;
     flex-wrap: wrap;
@@ -955,8 +955,8 @@
     background: rgba(10, 21, 53, 0.6);
     backdrop-filter: blur(8px);
     border-radius: 24px;
-    padding: 16px 24px;
-    flex: 1;
+    padding: 16px 20px;
+    flex: 1 1 180px;
     min-width: 140px;
     border: 1px solid rgba(59, 130, 246, 0.3);
     transition: 0.2s;
@@ -976,13 +976,14 @@
 }
 
 .insight-value {
-    font-size: 1.7rem;
+    font-size: 1.6rem;
     font-weight: 800;
     background: linear-gradient(135deg, #fff, var(--accent-light));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     line-height: 1.2;
+    word-break: break-word;
 }
 
 .insight-sub {
@@ -1032,7 +1033,7 @@
     gap: 28px;
 }
 
-/* Futuristic proposal card */
+/* ✅ FIXED CARD – no overflow hidden, badge visible */
 .proposal-card {
     background: rgba(10, 21, 53, 0.7);
     backdrop-filter: blur(12px);
@@ -1041,9 +1042,10 @@
     border: 1px solid rgba(59, 130, 246, 0.3);
     transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
     position: relative;
-    overflow: hidden;
+    overflow: visible;   /* ← allows badge to be visible */
 }
 
+/* Pseudo‑element glow stays inside */
 .proposal-card::before {
     content: '';
     position: absolute;
@@ -1054,6 +1056,7 @@
     background: linear-gradient(90deg, transparent, var(--accent-light), var(--cyan), transparent);
     opacity: 0;
     transition: opacity 0.3s;
+    pointer-events: none;
 }
 
 .proposal-card:hover {
@@ -1066,6 +1069,7 @@
     opacity: 1;
 }
 
+/* TOP PICK badge – now fully visible */
 .top-pick {
     border: 1px solid #f59e0b;
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(37, 99, 235, 0.1));
@@ -1074,20 +1078,21 @@
 
 .top-badge {
     position: absolute;
-    top: -12px;
+    top: -14px;
     right: 24px;
     background: linear-gradient(135deg, #f59e0b, #ea580c);
     color: white;
     font-size: 0.7rem;
     font-weight: 800;
-    padding: 5px 16px;
+    padding: 5px 18px;
     border-radius: 40px;
     letter-spacing: 0.08em;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 5;
+    white-space: nowrap;
 }
 
-/* Card header (name + match) */
+/* Card header inside proposal */
 .proposal-card .card-header {
     display: flex;
     justify-content: space-between;
@@ -1095,6 +1100,8 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
     gap: 12px;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .proposal-card h3 {
@@ -1105,18 +1112,19 @@
     background-clip: text;
     color: transparent;
     letter-spacing: -0.01em;
+    margin: 0;
 }
 
 .match-label {
     font-size: 0.7rem;
     font-weight: 800;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     padding: 4px 10px;
     border-radius: 40px;
     display: inline-block;
 }
 
-/* Circular progress */
+/* Circular progress – already fine */
 .circular-progress {
     position: relative;
     width: 80px;
@@ -1125,7 +1133,7 @@
 }
 
 .circular-progress svg {
-    filter: drop-shadow(0 0 6px rgba(37,99,235,0.5));
+    filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.5));
 }
 
 .circular-progress circle:last-child {
@@ -1141,10 +1149,10 @@
     font-size: 1.2rem;
     font-weight: 800;
     color: #e2e8f0;
-    text-shadow: 0 0 8px rgba(37,99,235,0.5);
+    text-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
 }
 
-/* Message */
+/* Proposal message */
 .proposal-message {
     color: var(--text-secondary);
     font-size: 0.85rem;
@@ -1156,18 +1164,20 @@
     border-left: 3px solid var(--accent-light);
 }
 
-/* Metrics row */
+/* Metrics – better responsive and fallback style */
 .metrics {
     display: flex;
     gap: 20px;
     margin: 16px 0 20px;
     padding: 12px 0;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
 }
 
 .metric {
     flex: 1;
+    min-width: 100px;
 }
 
 .metric-label {
@@ -1183,6 +1193,7 @@
     font-size: 1.1rem;
     font-weight: 700;
     color: #f1f5f9;
+    word-break: break-word;
 }
 
 /* Action buttons */
@@ -1205,7 +1216,7 @@
     transition: all 0.2s;
     flex: 1;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(16,185,129,0.2);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
 
 .hire-btn:hover {
@@ -1231,27 +1242,62 @@
 .view-profile-btn:hover {
     background: rgba(37, 99, 235, 0.4);
     border-color: #3b82f6;
-    box-shadow: 0 0 12px rgba(59,130,246,0.3);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
 }
 
-/* View proposals button inside job card */
+/* Responsive touch-ups */
+@media (max-width: 700px) {
+    .proposals-grid {
+        grid-template-columns: 1fr;
+    }
+    .inline-proposals-section {
+        padding: 20px;
+    }
+    .insight-card {
+        min-width: 100%;
+    }
+    .metrics {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .top-badge {
+        font-size: 0.65rem;
+        padding: 4px 12px;
+        right: 16px;
+        top: -12px;
+    }
+}
+
+/* ── VIEW / HIDE PROPOSALS BUTTON ── */
 .view-proposals-btn {
     margin-top: 16px;
-    background: rgba(37, 99, 235, 0.15);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(6, 182, 212, 0.1));
     border: 1px solid rgba(59, 130, 246, 0.5);
     color: #60a5fa;
-    padding: 8px 18px;
+    padding: 8px 20px;
     border-radius: 40px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
-    transition: 0.2s;
+    transition: all 0.25s ease;
     width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(4px);
 }
 
 .view-proposals-btn:hover {
-    background: rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(6, 182, 212, 0.2));
+    border-color: var(--accent-light);
+    color: #bfdbfe;
     transform: translateX(4px);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+}
+
+.view-proposals-btn:active {
+    transform: translateX(2px);
 }
 
 /* Loading skeleton */

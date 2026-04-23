@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -59,21 +60,51 @@ const ClientDashboard = () => {
         budgetRange: '—',
         proposedRange: '—'
     };
-        const total = proposals.length;
-        const avgMatch = proposals.reduce((sum, p) => 
-            sum + (p.successProbability || 0), 0) / total;
-        const bestMatch = proposals.reduce((best, p) => 
-            (p.successProbability || 0) > (best?.successProbability || 0) ? p : best, proposals[0]);
-        const budgets = proposals.map(p => 
-            p.estimatedBudget || 0).filter(b => b > 0);
-        const proposedPrices = proposals.map(p => 
-            p.proposedPrice || 0).filter(pr => pr > 0);
 
-        const budgetRange = budgets.length ? `$${Math.min(...budgets)} – $${Math.max(...budgets)}` : '—';
+    const total = proposals.length;
+    const avgMatch = proposals.reduce((sum, p) => sum + (p.successProbability || 0), 0) / total;
+    const bestMatch = proposals.reduce((best, p) => 
+        (p.successProbability || 0) > (best?.successProbability || 0) ? p : best, proposals[0]);
 
-        const proposedRange = proposedPrices.length ? `$${Math.min(...proposedPrices)} – $${Math.max(...proposedPrices)}` : '—';
+    // Helper to format money with 2 decimals
+    const formatMoneyRange = (value) => {
+        if (!value && value !== 0) return null;
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
+    };
 
-        return { total, avgMatch: (avgMatch * 100).toFixed(1), bestMatch, budgetRange, proposedRange };
+    const budgets = proposals.map(p => p.estimatedBudget || 0).filter(b => b > 0);
+    const proposedPrices = proposals.map(p => p.proposedPrice || 0).filter(pr => pr > 0);
+
+    let budgetRange = '—';
+    if (budgets.length) {
+        const minBudget = Math.min(...budgets);
+        const maxBudget = Math.max(...budgets);
+        budgetRange = minBudget === maxBudget 
+            ? formatMoneyRange(minBudget)
+            : `${formatMoneyRange(minBudget)} – ${formatMoneyRange(maxBudget)}`;
+    }
+
+    let proposedRange = '—';
+    if (proposedPrices.length) {
+        const minProposed = Math.min(...proposedPrices);
+        const maxProposed = Math.max(...proposedPrices);
+        proposedRange = minProposed === maxProposed
+            ? formatMoneyRange(minProposed)
+            : `${formatMoneyRange(minProposed)} – ${formatMoneyRange(maxProposed)}`;
+    }
+
+    return {
+        total,
+        avgMatch: parseFloat((avgMatch * 100).toFixed(2)),
+        bestMatch,
+        budgetRange,
+        proposedRange
+    };
     };
 
     //NEW : proposal sorted
@@ -269,6 +300,7 @@ const ClientDashboard = () => {
 
         return errors;
     };
+
     const fetchMyJobs = async () => {
         setJobsLoading(true);
         try {
@@ -286,6 +318,22 @@ const ClientDashboard = () => {
         } finally {
             setJobsLoading(false);
         }
+    };
+
+    const formatMoney = (value) => {
+    if (!value && value !== 0) return '—';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+    };
+
+    const formatPercent = (value) => {
+    if (value === undefined || value === null) return '—';
+    const percent = value * 100;
+    return percent.toFixed(2) + '%';
     };
 
     
@@ -763,8 +811,8 @@ const ClientDashboard = () => {
                     </div>
                 )}
 
-{/* ── MY JOBS (with inline proposals under each job) ── */}
-{activeTab === 'my-jobs' && (
+                {/* ── MY JOBS (with inline proposals under each job) ── */}
+        {activeTab === 'my-jobs' && (
     <div className="dashboard-card">
         <div className="card-header">
             <h2>My Posted Jobs</h2>
@@ -855,8 +903,18 @@ const ClientDashboard = () => {
                             {!inlineLoading && inlineProposals.length > 0 && (
                                 <>
                                     <div className="proposals-insights">
-                                        <div className="insight-card"><div className="insight-label">📊 TOTAL PROPOSALS</div><div className="insight-value">{insights.total}</div></div>
-                                        <div className="insight-card"><div className="insight-label">🎯 AVG. MATCH</div><div className="insight-value">{insights.avgMatch}%</div><div className="insight-sub">AI confidence score</div></div>
+                                        <div className="insight-card">
+                                            <div className="insight-label">📊 TOTAL PROPOSALS
+                                        </div>
+                                            <div className="insight-value">{insights.total}</div>
+                                        </div>
+                                        <div className="insight-card">
+                                            <div className="insight-label">🎯 AVG. MATCH</div>
+
+                                            <div className="insight-value">{typeof insights.avgMatch === 'number' ? insights.avgMatch.toFixed(2) : insights.avgMatch}%</div>
+
+                                            <div className="insight-sub">AI confidence score</div>
+                                        </div>
                                         <div className="insight-card"><div className="insight-label">🏆 BEST MATCH</div><div className="insight-value">{insights.bestMatch?.freelancerName?.split(' ')[0] || '—'}</div><div className="insight-sub">{Math.round((insights.bestMatch?.successProbability || 0)*100)}% match</div></div>
                                         <div className="insight-card"><div className="insight-label">💰 BUDGET RANGE</div><div className="insight-value">{insights.budgetRange}</div><div className="insight-sub">Proposed: {insights.proposedRange}</div></div>
                                     </div>
@@ -885,32 +943,40 @@ const ClientDashboard = () => {
                                                             <span className="match-label" style={{ color: match.color, background: 'rgba(0,0,0,0.3)' }}>{match.text}</span>
                                                         </div>
                                                         <div className="circular-progress">
-                                                            <svg width="78" height="78" viewBox="0 0 42 42">
-                                                                <defs>
-                                                                    <linearGradient id={`grad-${p.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                                                                        <stop offset="0%" stopColor="#2563eb" />
-                                                                        <stop offset="100%" stopColor="#06b6d4" />
-                                                                    </linearGradient>
-                                                                </defs>
-                                                                <circle cx="21" cy="21" r="15" fill="none" stroke="#1e2937" strokeWidth="5" />
-                                                                <circle
-                                                                    cx="21" cy="21" r="15"
-                                                                    fill="none"
-                                                                    stroke={`url(#grad-${p.id})`}
-                                                                    strokeWidth="5"
-                                                                    strokeDasharray={`${prob} 100`}
-                                                                    strokeLinecap="round"
-                                                                    transform="rotate(-90 21 21)"
-                                                                />
-                                                            </svg>
-                                                            <div className="percentage">{prob}%</div>
-                                                        </div>
+    <svg width="78" height="78" viewBox="0 0 42 42">
+        <defs>
+            <linearGradient id={`grad-${p.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#2563eb" />
+                <stop offset="100%" stopColor="#06b6d4" />
+            </linearGradient>
+        </defs>
+        <circle cx="21" cy="21" r="15" fill="none" stroke="#1e2937" strokeWidth="5" />
+        <circle
+            cx="21" cy="21" r="15"
+            fill="none"
+            stroke={`url(#grad-${p.id})`}
+            strokeWidth="5"
+            strokeDasharray={`${Math.round((p.successProbability || 0) * 100)} 100`}
+            strokeLinecap="round"
+            transform="rotate(-90 21 21)"
+        />
+    </svg>
+    <div className="percentage">{formatPercent(p.successProbability)}</div>
+</div>
                                                     </div>
                                                     <p className="proposal-message">“{p.message || 'No additional message provided.'}”</p>
-                                                    <div className="metrics">
-                                                        <div className="metric"><span className="metric-label">Proposed Price</span><span className="metric-value">${p.proposedPrice}</span></div>
-                                                        <div className="metric"><span className="metric-label">Job Budget</span><span className="metric-value">${p.estimatedBudget}</span></div>
-                                                    </div>
+
+                                {/* metrics */}
+<div className="metrics">
+    <div className="metric">
+        <span className="metric-label">Proposed Price</span>
+        <span className="metric-value">{formatMoney(p.proposedPrice)}</span>
+    </div>
+    <div className="metric">
+        <span className="metric-label">Job Budget</span>
+        <span className="metric-value">{formatMoney(p.estimatedBudget)}</span>
+    </div>
+</div>
                                                     <div className="actions">
                                                         <button className="hire-btn" onClick={() => handleUpdateAppStatus(p.id || p._id, 'ACCEPTED')}>✨ Hire Now</button>
                                                         <button className="view-profile-btn" onClick={() => navigate(`/freelancer/${p.freelancerId}`)}>👤 View Profile</button>
@@ -934,7 +1000,7 @@ const ClientDashboard = () => {
             );
         })}
     </div>
-)}
+        )}
 
                 {/* ── PROFILE ── */}
                 {activeTab === 'profile' && (

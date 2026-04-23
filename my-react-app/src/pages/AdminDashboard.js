@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './AdminDashboard.css';
@@ -38,15 +39,32 @@ const AdminDashboard = () => {
     };
 
     const computeInsights = (proposals) => {
-        if (!proposals.length) return { total: 0, avgMatch: 0, bestMatch: null, budgetRange: '—', proposedRange: '—' };
-        const total = proposals.length;
-        const avgMatch = proposals.reduce((sum, p) => sum + (p.successProbability || 0), 0) / total;
-        const bestMatch = proposals.reduce((best, p) => (p.successProbability || 0) > (best?.successProbability || 0) ? p : best, proposals[0]);
-        const budgets = proposals.map(p => p.estimatedBudget || 0).filter(b => b > 0);
-        const proposedPrices = proposals.map(p => p.proposedPrice || 0).filter(pr => pr > 0);
-        const budgetRange = budgets.length ? `$${Math.min(...budgets)} – $${Math.max(...budgets)}` : '—';
-        const proposedRange = proposedPrices.length ? `$${Math.min(...proposedPrices)} – $${Math.max(...proposedPrices)}` : '—';
-        return { total, avgMatch: (avgMatch * 100).toFixed(1), bestMatch, budgetRange, proposedRange };
+    if (!proposals.length) return {
+        total: 0, avgMatch: 0, bestMatch: null,
+        budgetRange: '—', proposedRange: '—'
+    };
+    const total = proposals.length;
+    const avgMatch = proposals.reduce((sum, p) => sum + (p.successProbability || 0), 0) / total;
+    const bestMatch = proposals.reduce((best, p) =>
+        (p.successProbability || 0) > (best?.successProbability || 0) ? p : best, proposals[0]);
+
+    const budgets = proposals.map(p => p.estimatedBudget || 0).filter(b => b > 0);
+    const proposedPrices = proposals.map(p => p.proposedPrice || 0).filter(pr => pr > 0);
+
+    const formatRange = (values) => {
+        if (!values.length) return '—';
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        return minVal === maxVal ? formatMoney(minVal) : `${formatMoney(minVal)} – ${formatMoney(maxVal)}`;
+    };
+
+    return {
+        total,
+        avgMatch: parseFloat((avgMatch * 100).toFixed(2)),
+        bestMatch,
+        budgetRange: formatRange(budgets),
+        proposedRange: formatRange(proposedPrices)
+    };
     };
 
     const getSortedProposals = () => {
@@ -147,6 +165,22 @@ const AdminDashboard = () => {
     } catch (err) {
         showMessage('Network error while deleting proposal', 'error');
     }
+    };
+
+    const formatMoney = (value) => {
+    if (!value && value !== 0) return '—';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+    };
+
+    const formatPercent = (value) => {
+    if (value === undefined || value === null) return '—';
+    const percent = value * 100;
+    return percent.toFixed(2) + '%';
     };
 
 

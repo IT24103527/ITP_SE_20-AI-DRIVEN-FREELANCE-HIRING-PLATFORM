@@ -17,7 +17,7 @@ public class ProposalController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT','ADMIN')")
     public List<ProposalResponse> getProposalsForJob(@PathVariable String jobId) {
         return mlService.getProposalsForJob(jobId);
     }

@@ -525,3 +525,31 @@
 .otp-input.error { border-color: #ef4444; }
 .otp-back-btn { background: none; border: none; color: #94a3b8; font-size: 0.85rem; cursor: pointer; margin-top: 16px; padding: 6px 12px; border-radius: 6px; transition: color 0.2s; font-family: inherit; }
 .otp-back-btn:hover { color: #a78bfa; }
+
+/* ── Backend starting banner ── */
+.backend-starting-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 10px;
+    color: #93c5fd;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.backend-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(147, 197, 253, 0.3);
+    border-top-color: #93c5fd;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

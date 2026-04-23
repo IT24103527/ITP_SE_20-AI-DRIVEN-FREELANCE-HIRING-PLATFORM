@@ -44,6 +44,8 @@ public class MlService {
 
         // Build ML features
         MLFeatures features = new MLFeatures();
+        features.setProposedBudget(request.getProposedBudget());
+        features.setJobBudget(Double.parseDouble(job.getBudget()));
         features.setRating(profile.getRating() != null ? profile.getRating() : 0.0);
         features.setCompletedJobs(profile.getCompletedJobs() != null ? profile.getCompletedJobs() : 0);
         features.setSkillCount(profile.getSkills() != null ? profile.getSkills().size() : 0);

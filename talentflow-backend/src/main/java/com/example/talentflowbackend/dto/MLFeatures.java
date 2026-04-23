@@ -8,4 +8,6 @@ public class MLFeatures {
     private int completedJobs;
     private int skillCount;
     private double budgetRatio;
+    private double proposedBudget;
+    private double jobBudget;
 }

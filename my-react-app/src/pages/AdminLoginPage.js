@@ -90,6 +90,7 @@ const AdminLoginPage = () => {
                 }
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userRole', data.role);
+                if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
                 navigate('/admin-dashboard');
             } else if (data.locked) {
                 setLockCountdown(data.lockSecondsRemaining || 60);
@@ -190,8 +191,12 @@ const AdminLoginPage = () => {
                                             placeholder="000000"
                                             maxLength={6}
                                             autoFocus
+                                            autoComplete="one-time-code"
+                                            inputMode="numeric"
+                                            aria-label="6-digit verification code"
+                                            aria-describedby={errors.otp ? 'otp-error' : undefined}
                                         />
-                                        {errors.otp && <span className="error-message">{errors.otp}</span>}
+                                        {errors.otp && <span id="otp-error" className="error-message" role="alert">{errors.otp}</span>}
                                     </div>
                                     <button type="submit" className="login-btn-blue" disabled={isSubmitting}>
                                         {isSubmitting ? 'Verifying...' : 'Verify & Access Portal'}

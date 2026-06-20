@@ -104,6 +104,7 @@ const ClientLoginPage = () => {
                 }
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userRole', data.role);
+                if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
                 if (formData.rememberMe) localStorage.setItem('rememberedEmail', formData.email);
                 success('Login successful! Welcome back.');
                 navigate('/client-dashboard');
@@ -247,8 +248,12 @@ const ClientLoginPage = () => {
                                             placeholder="000000"
                                             maxLength={6}
                                             autoFocus
+                                            autoComplete="one-time-code"
+                                            inputMode="numeric"
+                                            aria-label="6-digit verification code"
+                                            aria-describedby={errors.otp ? 'otp-error' : undefined}
                                         />
-                                        {errors.otp && <span className="error-message">{errors.otp}</span>}
+                                        {errors.otp && <span id="otp-error" className="error-message" role="alert">{errors.otp}</span>}
                                     </div>
                                     <button type="submit" className="login-btn" disabled={isSubmitting}>
                                         {isSubmitting ? 'Verifying...' : 'Verify & Sign In'}
